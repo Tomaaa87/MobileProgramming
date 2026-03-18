@@ -11,18 +11,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.cookingtimer.presentation.ui.screens.DashboardScreen
 import com.example.cookingtimer.ui.theme.CookingtimerTheme
+import androidx.compose.material3.Surface
+import com.example.cookingtimer.presentation.ui.screens.AddTimerScreen
+import com.example.cookingtimer.presentation.ui.screens.LoginScreen
+import com.example.cookingtimer.presentation.ui.screens.RegisterScreen
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CookingtimerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ){
+                    AddTimerScreen(
                     )
                 }
             }
