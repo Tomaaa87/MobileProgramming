@@ -11,12 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.cookingtimer.presentation.ui.screens.DashboardScreen
-import com.example.cookingtimer.ui.theme.CookingtimerTheme
+import com.example.cookingtimer.presentation.theme.CookingtimerTheme
 import androidx.compose.material3.Surface
 import com.example.cookingtimer.presentation.ui.screens.AddTimerScreen
-import com.example.cookingtimer.presentation.ui.screens.LoginScreen
-import com.example.cookingtimer.presentation.ui.screens.RegisterScreen
+import com.example.cookingtimer.presentation.ui.screens.DashboardScreen
+import com.example.cookingtimer.presentation.ui.components.TimerCard
+
 
 
 class MainActivity : ComponentActivity() {
@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(innerPadding)
                 ){
-                    AddTimerScreen(
+                    DashboardScreen(
                     )
                 }
             }

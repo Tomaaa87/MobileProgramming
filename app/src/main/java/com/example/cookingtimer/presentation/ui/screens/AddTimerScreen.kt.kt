@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cookingtimer.presentation.ui.components.TimerCard
 
 @Composable
 fun AddTimerScreen() {
@@ -51,6 +52,7 @@ fun AddTimerScreen() {
         if (showErrors.value && duration.value.isBlank()) {
             Text(text = "Duration is required", color = Color.Red, fontSize = 12.sp)
         }
+
         Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedTextField(
@@ -80,11 +82,26 @@ fun AddTimerScreen() {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = { showErrors.value = true },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Add Timer")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (title.value.isNotBlank() || duration.value.isNotBlank() || description.value.isNotBlank()) {
+            Text(text = "Preview", fontSize = 18.sp)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TimerCard(
+                title = if (title.value.isBlank()) "Title" else title.value,
+                duration = if (duration.value.isBlank()) "Duration" else duration.value,
+                description = if (description.value.isBlank()) "Description" else description.value
+            )
         }
     }
 }

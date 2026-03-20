@@ -1,4 +1,4 @@
-package com.example.cookingtimer.ui.theme
+package com.example.cookingtimer.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

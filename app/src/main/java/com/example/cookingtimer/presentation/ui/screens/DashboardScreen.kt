@@ -1,30 +1,36 @@
 package com.example.cookingtimer.presentation.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cookingtimer.presentation.ui.components.TimerCard
 
 @Composable
 fun DashboardScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFDF7F2))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text(
             text = "Cooking Timer",
             fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -32,7 +38,7 @@ fun DashboardScreen() {
         Text(
             text = "Hello, Tom!",
             fontSize = 16.sp,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -40,36 +46,50 @@ fun DashboardScreen() {
         Text(
             text = "Active Timers",
             fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ActiveTimerCircle(name = "Pasta", time = "10:00")
-            ActiveTimerCircle(name = "Eggs", time = "07:00")
-            ActiveTimerCircle(name = "Rice", time = "18:00")
-        }
+        CenteredTimer(
+            title = "Pasta",
+            duration = "10:00",
+            description = "Boil water, add pasta."
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        CenteredTimer(
+            title = "Eggs",
+            duration = "07:00",
+            description = "Soft boiled."
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        CenteredTimer(
+            title = "Rice",
+            duration = "18:00",
+            description = "Simmer, lid on."
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        CenteredTimer(
+            title = "Cookies",
+            duration = "12:00",
+            description = "Bake and watch."
+        )
     }
 }
 
 @Composable
-fun ActiveTimerCircle(name: String, time: String) {
-    Card(
-        modifier = Modifier.size(110.dp),
-        shape = CircleShape
+private fun CenteredTimer(title: String, duration: String, description: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(text = name, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(text = time, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        }
+        TimerCard(title = title, duration = duration, description = description)
     }
 }
