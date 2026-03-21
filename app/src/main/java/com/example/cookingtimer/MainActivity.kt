@@ -24,15 +24,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
-            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                ){
-                    DashboardScreen(
-                    )
+            CookingtimerTheme(
+                darkTheme = true,
+                dynamicColor = false
+            ) {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
+                        DashboardScreen()
+                    }
                 }
             }
         }
