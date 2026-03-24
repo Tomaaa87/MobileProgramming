@@ -16,7 +16,8 @@ import androidx.compose.material3.Surface
 import com.example.cookingtimer.presentation.ui.screens.AddTimerScreen
 import com.example.cookingtimer.presentation.ui.screens.DashboardScreen
 import com.example.cookingtimer.presentation.ui.components.TimerCard
-
+import com.example.cookingtimer.presentation.ui.screens.LoginScreen
+import com.example.cookingtimer.presentation.ui.screens.RegisterScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        DashboardScreen()
+                        AddTimerScreen()
                     }
                 }
             }
@@ -54,6 +55,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     CookingtimerTheme {
-        Greeting("Android")
+        RegisterScreen()
     }
 }

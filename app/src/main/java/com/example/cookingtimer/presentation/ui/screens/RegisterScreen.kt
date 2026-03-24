@@ -7,133 +7,111 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.cookingtimer.presentation.ui.components.FormCard
+import com.example.cookingtimer.presentation.ui.components.ScreenHeader
+import com.example.cookingtimer.presentation.ui.components.ValidatedTextField
 
 @Composable
 fun RegisterScreen() {
-    val email = remember { mutableStateOf("") }
-    val firstName = remember { mutableStateOf("") }
-    val lastName = remember { mutableStateOf("") }
-    val username = remember { mutableStateOf("") }
-    val phoneNumber = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var showErrors by remember { mutableStateOf(false) }
 
-    val showErrors = remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
-        Text(
-            text = "Register",
-            fontSize = 28.sp,
-            color = MaterialTheme.colorScheme.onBackground
+        ScreenHeader(
+            title = "Register",
+            subtitle = "Create an account to save your timers."
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         FormCard {
-            OutlinedTextField(
-                value = email.value,
-                onValueChange = { email.value = it },
-                label = { Text("Email") },
-                placeholder = { Text("example@email.com") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = showErrors.value && email.value.isBlank()
+            ValidatedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                placeholder = "example@email.com",
+                error = if (showErrors && email.isBlank()) "Email is required" else null
             )
-            if (showErrors.value && email.value.isBlank()) {
-                Text(text = "Email is required", color = Color.Red, fontSize = 12.sp)
-            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = firstName.value,
-                onValueChange = { firstName.value = it },
-                label = { Text("First Name") },
-                placeholder = { Text("Tom") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = showErrors.value && firstName.value.isBlank()
+            ValidatedTextField(
+                value = firstName,
+                onValueChange = { firstName = it },
+                label = "First Name",
+                placeholder = "Tom",
+                error = if (showErrors && firstName.isBlank()) "First name is required" else null
             )
-            if (showErrors.value && firstName.value.isBlank()) {
-                Text(text = "First name is required", color = Color.Red, fontSize = 12.sp)
-            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = lastName.value,
-                onValueChange = { lastName.value = it },
-                label = { Text("Last Name") },
-                placeholder = { Text("Smith") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = showErrors.value && lastName.value.isBlank()
+            ValidatedTextField(
+                value = lastName,
+                onValueChange = { lastName = it },
+                label = "Last Name",
+                placeholder = "Smith",
+                error = if (showErrors && lastName.isBlank()) "Last name is required" else null
             )
-            if (showErrors.value && lastName.value.isBlank()) {
-                Text(text = "Last name is required", color = Color.Red, fontSize = 12.sp)
-            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = username.value,
-                onValueChange = { username.value = it },
-                label = { Text("Username") },
-                placeholder = { Text("tom87") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = showErrors.value && username.value.isBlank()
+            ValidatedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = "Username",
+                placeholder = "tom87",
+                error = if (showErrors && username.isBlank()) "Username is required" else null
             )
-            if (showErrors.value && username.value.isBlank()) {
-                Text(text = "Username is required", color = Color.Red, fontSize = 12.sp)
-            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = phoneNumber.value,
-                onValueChange = { phoneNumber.value = it },
-                label = { Text("Phone Number") },
-                placeholder = { Text("5551234567") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = showErrors.value && phoneNumber.value.isBlank()
+            ValidatedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = "Phone Number",
+                placeholder = "5551234567",
+                error = if (showErrors && phoneNumber.isBlank()) "Phone number is required" else null
             )
-            if (showErrors.value && phoneNumber.value.isBlank()) {
-                Text(text = "Phone number is required", color = Color.Red, fontSize = 12.sp)
-            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = password.value,
-                onValueChange = { password.value = it },
-                label = { Text("Password") },
-                placeholder = { Text("Enter password") },
-                modifier = Modifier.fillMaxWidth(),
+            ValidatedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                placeholder = "Enter password",
                 visualTransformation = PasswordVisualTransformation(),
-                isError = showErrors.value && password.value.isBlank()
+                error = if (showErrors && password.isBlank()) "Password is required" else null
             )
-            if (showErrors.value && password.value.isBlank()) {
-                Text(text = "Password is required", color = Color.Red, fontSize = 12.sp)
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { showErrors.value = true },
+                onClick = { showErrors = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Create Account")
