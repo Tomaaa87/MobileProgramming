@@ -59,6 +59,42 @@ fun AddTimerScreen() {
             subtitle = "Create a new cooking timer with custom options."
         )
 
+        // Preview Section (Moved to Top)
+        if (title.isNotBlank() || description.isNotBlank()) {
+            Text(
+                text = "Preview",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                TimerCard(
+                    title = title.ifBlank { "Title" },
+                    duration = durationDisplay,
+                    description = description.ifBlank { "Description" }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "Ringtone: $selectedRingtone • Category: $selectedCategory",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // Form Section (Moved to Bottom)
         FormCard {
             Text(
                 text = "Timer Duration: $durationDisplay",
@@ -122,41 +158,7 @@ fun AddTimerScreen() {
                 Text("Add Timer")
             }
         }
-
+        
         Spacer(modifier = Modifier.height(24.dp))
-
-        if (title.isNotBlank() || description.isNotBlank()) {
-            Text(
-                text = "Preview",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                TimerCard(
-                    title = title.ifBlank { "Title" },
-                    duration = durationDisplay,
-                    description = description.ifBlank { "Description" }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = "Ringtone: $selectedRingtone • Category: $selectedCategory",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-        }
     }
 }

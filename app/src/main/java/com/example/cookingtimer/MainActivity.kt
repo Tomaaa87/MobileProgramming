@@ -18,6 +18,7 @@ import com.example.cookingtimer.presentation.ui.screens.DashboardScreen
 import com.example.cookingtimer.presentation.ui.components.TimerCard
 import com.example.cookingtimer.presentation.ui.screens.LoginScreen
 import com.example.cookingtimer.presentation.ui.screens.RegisterScreen
+import com.example.cookingtimer.presentation.ui.screens.ProfileScreen
 
 
 class MainActivity : ComponentActivity() {
