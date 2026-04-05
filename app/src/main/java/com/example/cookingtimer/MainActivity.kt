@@ -56,6 +56,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     CookingtimerTheme {
-        RegisterScreen()
+        DashboardScreen()
     }
 }
