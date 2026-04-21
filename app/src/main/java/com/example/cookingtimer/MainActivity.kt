@@ -4,22 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.example.cookingtimer.presentation.navigation.BottomBar
+import com.example.cookingtimer.presentation.navigation.NavGraph
+import com.example.cookingtimer.presentation.navigation.Screen
 import com.example.cookingtimer.presentation.theme.CookingtimerTheme
-import androidx.compose.material3.Surface
-import com.example.cookingtimer.presentation.ui.screens.AddTimerScreen
-import com.example.cookingtimer.presentation.ui.screens.DashboardScreen
-import com.example.cookingtimer.presentation.ui.components.TimerCard
-import com.example.cookingtimer.presentation.ui.screens.LoginScreen
-import com.example.cookingtimer.presentation.ui.screens.RegisterScreen
-import com.example.cookingtimer.presentation.ui.screens.ProfileScreen
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,32 +24,19 @@ class MainActivity : ComponentActivity() {
                 darkTheme = true,
                 dynamicColor = false
             ) {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
-                        AddTimerScreen()
+                val navController = rememberNavController()
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = { BottomBar(navController = navController) }
+                ) { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        NavGraph(
+                            navController = navController,
+                            startDestination = Screen.Dashboard.route
+                        )
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CookingtimerTheme {
-        RegisterScreen()
     }
 }

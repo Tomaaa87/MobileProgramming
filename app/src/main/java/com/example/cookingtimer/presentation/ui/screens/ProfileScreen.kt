@@ -2,56 +2,19 @@ package com.example.cookingtimer.presentation.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,19 +30,22 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onLogoutClick: () -> Unit
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var displayName by rememberSaveable { mutableStateOf("Tom Smith") }
+    var bio by rememberSaveable { mutableStateOf("Home cook and pasta lover.") }
 
-    var displayName by remember { mutableStateOf("Tom Smith") }
-    var bio by remember { mutableStateOf("Home cook and pasta lover.") }
     var notificationsEnabled by remember { mutableStateOf(true) }
     var emailUpdates by remember { mutableStateOf(false) }
     var selectedTheme by remember { mutableStateOf("System") }
     var fontSize by remember { mutableFloatStateOf(16f) }
-    
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
+
+    val achievements = listOf("Timer Pro", "Egg Master", "Pasta King", "Chef de Cuisine", "Quick Learner")
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -90,7 +56,7 @@ fun ProfileScreen() {
                 Button(
                     onClick = {
                         showLogoutDialog = false
-                        scope.launch { snackbarHostState.showSnackbar("Logged out successfully") }
+                        onLogoutClick()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) { Text("Log Out") }
@@ -116,14 +82,14 @@ fun ProfileScreen() {
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Export Data") },
-                                onClick = { 
+                                onClick = {
                                     showMoreMenu = false
                                     scope.launch { snackbarHostState.showSnackbar("Data exported") }
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text("Delete Account", color = MaterialTheme.colorScheme.error) },
-                                onClick = { 
+                                onClick = {
                                     showMoreMenu = false
                                     scope.launch { snackbarHostState.showSnackbar("Account deletion requested") }
                                 }
@@ -136,14 +102,11 @@ fun ProfileScreen() {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    scope.launch { snackbarHostState.showSnackbar("Changes saved") }
-                }
-            ) {
-                Icon(Icons.Default.Check, contentDescription = "Save")
-            }
+                onClick = { scope.launch { snackbarHostState.showSnackbar("Changes saved") } }
+            ) { Icon(Icons.Default.Check, contentDescription = "Save") }
         }
     ) { paddingValues ->
+        // This is your second LazyColumn
         LazyColumn(
             contentPadding = paddingValues,
             modifier = Modifier
@@ -158,6 +121,19 @@ fun ProfileScreen() {
                     title = "Profile",
                     subtitle = "Personalize your cooking experience."
                 )
+            }
+
+            // --- Achievements Row (Your second LazyRow) ---
+            item {
+                SectionTitle("My Achievements")
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(achievements) { achievement ->
+                        BadgeChip(achievement)
+                    }
+                }
             }
 
             item {
@@ -185,46 +161,22 @@ fun ProfileScreen() {
                                     null,
                                     modifier = Modifier.size(50.dp),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                ) }
+                                )
+                            }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(12.dp))
-                        
-                        Text(
-                            text = displayName,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+
+                        Text(text = displayName, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                         Text(
                             text = "@${displayName.lowercase().replace(" ", "")}",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        
-                        TextButton(onClick = { /* slika neka projmeena*/ }) {
-                            Text("Change Photo")
-                        } } }
+                    }
+                }
             }
 
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        StatCard("Timers", "24")
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        StatCard("Cooked", "12")
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        StatCard("Rating", "4.8")
-                    } }
-            }
-
-            // Personal Info
             item {
                 SectionTitle("General Info")
                 FormCard {
@@ -260,6 +212,7 @@ fun ProfileScreen() {
                     )
                 }
             }
+
             item {
                 SectionTitle("Theme")
                 FormCard {
@@ -280,8 +233,10 @@ fun ProfileScreen() {
                             Text(theme, fontSize = 16.sp)
                         }
                         if (index < 2) HorizontalDivider()
-                    } }
+                    }
+                }
             }
+
             item {
                 SectionTitle("Appearance")
                 FormCard {
@@ -313,7 +268,9 @@ fun ProfileScreen() {
                     Text("Log Out")
                 }
                 Spacer(modifier = Modifier.height(40.dp))
-            } } }
+            }
+        }
+    }
 }
 
 @Composable
@@ -324,6 +281,26 @@ private fun SectionTitle(title: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
     )
+}
+
+@Composable
+private fun BadgeChip(name: String) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(text = name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        }
+    }
 }
 
 @Composable
@@ -343,18 +320,5 @@ private fun ToggleRow(
             Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-@Composable
-private fun StatCard(label: String, value: String) {
-    FormCard {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
     }
 }
