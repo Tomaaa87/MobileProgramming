@@ -6,7 +6,14 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cookingtimer.presentation.ui.screens.*
+import com.example.cookingtimer.presentation.view_model.auth.login.LoginViewModel
+import com.example.cookingtimer.presentation.view_model.auth.registration.RegistrationViewModel
+import com.example.cookingtimer.presentation.view_model.profile.ProfileViewModel
+import com.example.cookingtimer.presentation.view_model.home.HomeShortcutViewModel
+import com.example.cookingtimer.presentation.view_model.timer.TimerViewModel
+import com.example.cookingtimer.presentation.view_model.timer.AddTimerViewModel
 
 @Composable
 fun NavGraph(
@@ -17,6 +24,24 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
+        composable(Screen.HomeShortcut.route) {
+            val viewModel: HomeShortcutViewModel = hiltViewModel()
+            HomeShortcutScreen(
+                viewModel = viewModel,
+                onScreenClick = { route ->
+                    navController.navigate(route)
+                }
+            )
+        }
+        composable(Screen.Timers.route) {
+            val viewModel: TimerViewModel = hiltViewModel()
+            TimerScreen(
+                viewModel = viewModel,
+                onAddTimerClick = {
+                    navController.navigate(Screen.AddTimer.createRoute("TimerList"))
+                }
+            )
+        }
         composable(
             route = Screen.Dashboard.route,
             arguments = listOf(
@@ -35,9 +60,11 @@ fun NavGraph(
             DashboardScreen(name = name, email = email)
         }
         composable(Screen.Login.route) {
+            val viewModel: LoginViewModel = hiltViewModel()
             LoginScreen(
-                onLoginClick = { name, email ->
-                    navController.navigate(Screen.Dashboard.createRoute(name, email)) {
+                viewModel = viewModel,
+                onNavigate = {
+                    navController.navigate(Screen.HomeShortcut.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -45,9 +72,11 @@ fun NavGraph(
             )
         }
         composable(Screen.Register.route) {
+            val viewModel: RegistrationViewModel = hiltViewModel()
             RegisterScreen(
-                onRegisterClick = { name, email ->
-                    navController.navigate(Screen.Dashboard.createRoute(name, email)) {
+                viewModel = viewModel,
+                onNavigate = {
+                    navController.navigate(Screen.HomeShortcut.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
@@ -55,7 +84,9 @@ fun NavGraph(
             )
         }
         composable(Screen.Profile.route) {
+            val viewModel: ProfileViewModel = hiltViewModel()
             ProfileScreen(
+                viewModel = viewModel,
                 onLogoutClick = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -63,8 +94,22 @@ fun NavGraph(
                 }
             )
         }
-        composable(Screen.AddTimer.route) {
-            AddTimerScreen()
+        composable(
+            route = Screen.AddTimer.route,
+            arguments = listOf(
+                navArgument("source") {
+                    type = NavType.StringType
+                    defaultValue = "Default"
+                }
+            )
+        ) { backStackEntry ->
+            val source = backStackEntry.arguments?.getString("source") ?: "Default"
+            val viewModel: AddTimerViewModel = hiltViewModel()
+            AddTimerScreen(
+                source = source,
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

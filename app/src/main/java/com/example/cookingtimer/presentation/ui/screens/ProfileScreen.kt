@@ -14,7 +14,6 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,29 +22,59 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cookingtimer.presentation.ui.components.FormCard
 import com.example.cookingtimer.presentation.ui.components.ScreenHeader
 import com.example.cookingtimer.presentation.ui.components.ValidatedTextField
+import com.example.cookingtimer.presentation.ui.components.LoadingScreen
+import com.example.cookingtimer.presentation.ui.components.ErrorScreen
+import com.example.cookingtimer.presentation.view_model.profile.ProfileViewModel
+import com.example.cookingtimer.presentation.view_model.profile.ProfileUiState
+import com.example.cookingtimer.presentation.view_model.profile.ProfileData
 import kotlinx.coroutines.launch
+
+@Composable
+fun ProfileScreen(
+    viewModel: ProfileViewModel,
+    onLogoutClick: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (uiState) {
+        is ProfileUiState.Loading -> LoadingScreen()
+        is ProfileUiState.Error -> ErrorScreen(
+            message = (uiState as ProfileUiState.Error).message,
+            onRetry = { viewModel.resetUiState() }
+        )
+        is ProfileUiState.Success -> {
+            StatelessProfileScreen(
+                profileData = (uiState as ProfileUiState.Success).profileData,
+                onLogoutClick = onLogoutClick
+            )
+        }
+        else -> { /* Do nothing for Init or other states */ }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
+fun StatelessProfileScreen(
+    profileData: ProfileData,
     onLogoutClick: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    var displayName by rememberSaveable { mutableStateOf("Tom Smith") }
-    var bio by rememberSaveable { mutableStateOf("Home cook and pasta lover.") }
-
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var emailUpdates by remember { mutableStateOf(false) }
-    var selectedTheme by remember { mutableStateOf("System") }
-    var fontSize by remember { mutableFloatStateOf(16f) }
+    
+    // Local UI state for fields that the user can edit before saving
+    var displayName by remember { mutableStateOf(profileData.displayName) }
+    var bio by remember { mutableStateOf(profileData.bio) }
+    var notificationsEnabled by remember { mutableStateOf(profileData.notificationsEnabled) }
+    var emailUpdates by remember { mutableStateOf(profileData.emailUpdates) }
+    var selectedTheme by remember { mutableStateOf(profileData.selectedTheme) }
+    var fontSize by remember { mutableFloatStateOf(profileData.fontSize) }
+    
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
-
-    val achievements = listOf("Timer Pro", "Egg Master", "Pasta King", "Chef de Cuisine", "Quick Learner")
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -106,7 +135,6 @@ fun ProfileScreen(
             ) { Icon(Icons.Default.Check, contentDescription = "Save") }
         }
     ) { paddingValues ->
-        // This is your second LazyColumn
         LazyColumn(
             contentPadding = paddingValues,
             modifier = Modifier
@@ -123,14 +151,13 @@ fun ProfileScreen(
                 )
             }
 
-            // --- Achievements Row (Your second LazyRow) ---
             item {
                 SectionTitle("My Achievements")
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(achievements) { achievement ->
+                    items(profileData.achievements) { achievement ->
                         BadgeChip(achievement)
                     }
                 }
