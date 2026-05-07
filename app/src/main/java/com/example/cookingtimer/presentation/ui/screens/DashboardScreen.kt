@@ -1,6 +1,7 @@
 package com.example.cookingtimer.presentation.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -9,6 +10,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,53 +19,65 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.cookingtimer.presentation.ui.components.ScreenHeader
-import com.example.cookingtimer.presentation.ui.components.TimerCard
-import com.example.cookingtimer.presentation.ui.components.TimerItem
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.cookingtimer.presentation.ui.components.*
+import com.example.cookingtimer.presentation.view_model.dashboard.DashboardUiState
+import com.example.cookingtimer.presentation.view_model.dashboard.DashboardViewModel
+import com.example.cookingtimer.model.TimerData
 
 @Composable
 fun DashboardScreen(
+    viewModel: DashboardViewModel,
     name: String = "Tom",
-    email: String = ""
+    email: String = "",
+    onShortcutClick: (String) -> Unit
 ) {
-    var text by rememberSaveable { mutableStateOf("") }
-    var isChecked by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val categories = listOf(
-        "All", "Breakfast", "Lunch", "Dinner", "Dessert",
-        "Snacking", "Healthy", "Vegan", "Italian", "Baking"
-    )
-
-    val activeTimers = listOf(
-        TimerItem("Pasta", "10:00", "Boil water, add pasta."),
-        TimerItem("Eggs", "07:00", "Soft boiled."),
-        TimerItem("Rice", "18:00", "Simmer, lid on."),
-        TimerItem("Cookies", "12:00", "Bake and watch."),
-        TimerItem("Steak", "06:00", "Medium rare."),
-        TimerItem("Tea", "03:00", "English breakfast."),
-        TimerItem("Soup", "45:00", "Low heat simmer."),
-        TimerItem("Pizza", "15:00", "Crispy crust.")
-    )
-
-    val filteredCategories by remember {
-        derivedStateOf {
-            categories.filter { it.contains(text, ignoreCase = true) }
+    when (uiState) {
+        is DashboardUiState.Loading -> LoadingScreen()
+        is DashboardUiState.Error -> ErrorScreen(
+            message = (uiState as DashboardUiState.Error).message,
+            onRetry = { viewModel.resetUiState() }
+        )
+        is DashboardUiState.Success -> {
+            val state = uiState as DashboardUiState.Success
+            StatelessDashboardScreen(
+                name = name,
+                email = email,
+                searchQuery = state.searchQuery,
+                timers = state.timers,
+                categories = state.categories,
+                shortcuts = state.shortcuts,
+                onSearchChange = viewModel::onSearchChange,
+                onTimerToggle = viewModel::toggleTimer,
+                onShortcutClick = onShortcutClick
+            )
         }
+        else -> { /* Init */ }
     }
+}
 
-    val filteredTimers by remember {
-        derivedStateOf {
-            activeTimers.filter { timer ->
-                if (!isChecked) true
-                else {
-                    val minutes = timer.duration.substringBefore(":").toIntOrNull() ?: 0
-                    minutes <= 15
-                }
-            }
+@Composable
+fun StatelessDashboardScreen(
+    name: String,
+    email: String,
+    searchQuery: String,
+    timers: List<TimerData>,
+    categories: List<String>,
+    shortcuts: List<String>,
+    onSearchChange: (String) -> Unit,
+    onTimerToggle: (Int) -> Unit,
+    onShortcutClick: (String) -> Unit
+) {
+    var isShortTimersOnly by remember { mutableStateOf(false) }
+
+    val filteredTimers = if (isShortTimersOnly) {
+        timers.filter {
+            val minutes = it.duration.substringBefore(":").toIntOrNull() ?: 0
+            minutes <= 15
         }
-    }
+    } else timers
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -73,50 +88,55 @@ fun DashboardScreen(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
         item(span = { GridItemSpan(2) }) {
             ScreenHeader(
-                title = "Cooking Timer",
-                subtitle = "Hello, $name! ($email) Ready to cook something delicious?"
+                title = "Dashboard",
+                subtitle = "Hello, $name! Ready to cook something delicious?"
+            )
+        }
+
+        // --- NEW: Shortcut Section (Simplified HomeShortcut) ---
+        item(span = { GridItemSpan(2) }) {
+            Column {
+                Text(
+                    text = "Quick Shortcuts",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(shortcuts) { shortcut ->
+                        Card(
+                            modifier = Modifier.clickable { onShortcutClick(shortcut) },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                        ) {
+                            Text(shortcut, modifier = Modifier.padding(12.dp), fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
+        }
+
+        item(span = { GridItemSpan(2) }) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchChange,
+                label = { Text("Search categories") },
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
         item(span = { GridItemSpan(2) }) {
             Column {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Search categories") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        item(span = { GridItemSpan(2) }) {
-            Column {
-
                 Text(
                     text = "Categories",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-
-                if (filteredCategories.isEmpty()) {
-                    Text(
-                        text = "No categories match your search.",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(filteredCategories) { category ->
-                            CategoryChip(category)
-                        }
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(categories) { category ->
+                        CategoryChip(category)
                     }
                 }
 
@@ -124,49 +144,56 @@ fun DashboardScreen(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = isChecked,
-                        onCheckedChange = { isChecked = it }
+                        checked = isShortTimersOnly,
+                        onCheckedChange = { isShortTimersOnly = it }
                     )
                     Text("Show only short timers (< 15 min)")
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = if (isChecked) "Filter ON" else "Filter OFF"
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Active Timers",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
             }
         }
 
-        if (filteredTimers.isEmpty()) {
-            item(span = { GridItemSpan(2) }) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(100.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No timers available.", textAlign = TextAlign.Center)
+        // --- Active Timers (Simplified TimerScreen elements) ---
+        item(span = { GridItemSpan(2) }) {
+            Text(
+                text = "Active Timers",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        items(filteredTimers) { timer ->
+            TimerCardWithAction(
+                timer = timer,
+                onToggle = { onTimerToggle(timer.id) }
+            )
+        }
+    }
+}
+
+@Composable
+fun TimerCardWithAction(timer: TimerData, onToggle: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(timer.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                IconButton(onClick = onToggle) {
+                    Icon(
+                        Icons.Default.PlayArrow,
+                        contentDescription = "Toggle",
+                        tint = if (timer.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                    )
                 }
             }
-        } else {
-            items(filteredTimers) { timer ->
-                TimerCard(
-                    title = timer.title,
-                    duration = timer.duration,
-                    description = timer.description
-                )
-            }
-        }
-
-        item(span = { GridItemSpan(2) }) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Text(timer.duration, fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(timer.description, fontSize = 12.sp, lineHeight = 16.sp)
         }
     }
 }

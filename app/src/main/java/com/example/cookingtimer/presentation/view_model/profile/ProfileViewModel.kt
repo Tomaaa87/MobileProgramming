@@ -27,7 +27,7 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
     private fun loadProfile() {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-
+            
             val profileData = ProfileData(
                 displayName = "Tom Smith",
                 bio = "Home cook and pasta lover.",

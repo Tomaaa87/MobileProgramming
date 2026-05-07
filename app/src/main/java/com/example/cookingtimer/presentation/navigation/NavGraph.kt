@@ -11,8 +11,7 @@ import com.example.cookingtimer.presentation.ui.screens.*
 import com.example.cookingtimer.presentation.view_model.auth.login.LoginViewModel
 import com.example.cookingtimer.presentation.view_model.auth.registration.RegistrationViewModel
 import com.example.cookingtimer.presentation.view_model.profile.ProfileViewModel
-import com.example.cookingtimer.presentation.view_model.home.HomeShortcutViewModel
-import com.example.cookingtimer.presentation.view_model.timer.TimerViewModel
+import com.example.cookingtimer.presentation.view_model.dashboard.DashboardViewModel
 import com.example.cookingtimer.presentation.view_model.timer.AddTimerViewModel
 
 @Composable
@@ -24,24 +23,6 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable(Screen.HomeShortcut.route) {
-            val viewModel: HomeShortcutViewModel = hiltViewModel()
-            HomeShortcutScreen(
-                viewModel = viewModel,
-                onScreenClick = { route ->
-                    navController.navigate(route)
-                }
-            )
-        }
-        composable(Screen.Timers.route) {
-            val viewModel: TimerViewModel = hiltViewModel()
-            TimerScreen(
-                viewModel = viewModel,
-                onAddTimerClick = {
-                    navController.navigate(Screen.AddTimer.createRoute("TimerList"))
-                }
-            )
-        }
         composable(
             route = Screen.Dashboard.route,
             arguments = listOf(
@@ -57,14 +38,25 @@ fun NavGraph(
         ) { backStackEntry ->
             val name = backStackEntry.arguments?.getString("name") ?: "Tom"
             val email = backStackEntry.arguments?.getString("email") ?: ""
-            DashboardScreen(name = name, email = email)
+            val viewModel: DashboardViewModel = hiltViewModel()
+            DashboardScreen(
+                viewModel = viewModel,
+                name = name, 
+                email = email,
+                onShortcutClick = { shortcut ->
+                    when(shortcut) {
+                        "Add Timer" -> navController.navigate(Screen.AddTimer.createRoute("Dashboard"))
+                        "Profile" -> navController.navigate(Screen.Profile.route)
+                    }
+                }
+            )
         }
         composable(Screen.Login.route) {
             val viewModel: LoginViewModel = hiltViewModel()
             LoginScreen(
                 viewModel = viewModel,
                 onNavigate = {
-                    navController.navigate(Screen.HomeShortcut.route) {
+                    navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -76,7 +68,7 @@ fun NavGraph(
             RegisterScreen(
                 viewModel = viewModel,
                 onNavigate = {
-                    navController.navigate(Screen.HomeShortcut.route) {
+                    navController.navigate(Screen.Dashboard.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },

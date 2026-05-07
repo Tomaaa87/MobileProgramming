@@ -30,29 +30,17 @@ class AddTimerViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _uiState.value = AddTimerUiState.Loading
 
-            if (name.isBlank()) {
-                _uiState.value = AddTimerUiState.Error("Name cannot be empty")
+            if (name.isBlank() || duration.isBlank() || category.isBlank() || difficulty.isBlank()) {
+                _uiState.value = AddTimerUiState.Error("Please fill in all fields.")
                 return@launch
             }
-            if (duration.isBlank()) {
-                _uiState.value = AddTimerUiState.Error("Duration cannot be empty")
-                return@launch
-            }
-            if (duration.toIntOrNull() == null) {
-                _uiState.value = AddTimerUiState.Error("Duration must be numeric")
-                return@launch
-            }
-            if (category.isBlank()) {
-                _uiState.value = AddTimerUiState.Error("Category cannot be empty")
-                return@launch
-            }
-            if (difficulty.isBlank()) {
-                _uiState.value = AddTimerUiState.Error("Difficulty cannot be empty")
-                return@launch
-            }
-
-            // Logic to add timer would go here (e.g. repository call)
             
+            if (duration.toIntOrNull() == null) {
+                _uiState.value = AddTimerUiState.Error("Duration must be numeric.")
+                return@launch
+            }
+            
+            // Success logic
             _uiState.value = AddTimerUiState.Success
             _navigationEvent.send(AddTimerNavigationEvent.NavigateBack)
         }
