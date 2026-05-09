@@ -2,6 +2,7 @@ package com.example.cookingtimer.presentation.view_model.timer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cookingtimer.di.repository.TimerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AddTimerViewModel @Inject constructor() : ViewModel() {
+class AddTimerViewModel @Inject constructor(
+    private val timerRepository: TimerRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AddTimerUiState>(AddTimerUiState.Init)
     val uiState: StateFlow<AddTimerUiState> = _uiState.asStateFlow()
@@ -30,19 +33,14 @@ class AddTimerViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _uiState.value = AddTimerUiState.Loading
 
-            if (name.isBlank() || duration.isBlank() || category.isBlank() || difficulty.isBlank()) {
-                _uiState.value = AddTimerUiState.Error("Please fill in all fields.")
-                return@launch
-            }
-            
-            if (duration.toIntOrNull() == null) {
-                _uiState.value = AddTimerUiState.Error("Duration must be numeric.")
-                return@launch
-            }
-            
-            // Success logic
-            _uiState.value = AddTimerUiState.Success
-            _navigationEvent.send(AddTimerNavigationEvent.NavigateBack)
+            timerRepository.addTimer(name, duration, category, difficulty, isFavorite)
+                .onSuccess {
+                    _uiState.value = AddTimerUiState.Success
+                    _navigationEvent.send(AddTimerNavigationEvent.NavigateBack)
+                }
+                .onFailure { error ->
+                    _uiState.value = AddTimerUiState.Error(error.message ?: "Unknown error")
+                }
         }
     }
 

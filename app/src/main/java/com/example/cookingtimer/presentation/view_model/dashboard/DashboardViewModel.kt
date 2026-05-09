@@ -2,7 +2,7 @@ package com.example.cookingtimer.presentation.view_model.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cookingtimer.model.TimerData
+import com.example.cookingtimer.di.repository.TimerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,18 +11,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DashboardViewModel @Inject constructor() : ViewModel() {
-
-    private val allTimers = listOf(
-        TimerData(1, "Pasta", "10:00", "Boil water, add pasta."),
-        TimerData(2, "Eggs", "07:00", "Soft boiled."),
-        TimerData(3, "Rice", "18:00", "Simmer, lid on."),
-        TimerData(4, "Cookies", "12:00", "Bake and watch."),
-        TimerData(5, "Steak", "06:00", "Medium rare."),
-        TimerData(6, "Tea", "03:00", "English breakfast."),
-        TimerData(7, "Soup", "45:00", "Low heat simmer."),
-        TimerData(8, "Pizza", "15:00", "Crispy crust.")
-    )
+class DashboardViewModel @Inject constructor(
+    private val timerRepository: TimerRepository
+) : ViewModel() {
 
     private val allCategories = listOf(
         "All", "Breakfast", "Lunch", "Dinner", "Dessert",
@@ -41,12 +32,18 @@ class DashboardViewModel @Inject constructor() : ViewModel() {
     private fun loadDashboard() {
         viewModelScope.launch {
             _uiState.value = DashboardUiState.Loading
-            _uiState.value = DashboardUiState.Success(
-                searchQuery = "",
-                timers = allTimers,
-                categories = allCategories,
-                shortcuts = shortcuts
-            )
+            timerRepository.getTimers()
+                .onSuccess { timers ->
+                    _uiState.value = DashboardUiState.Success(
+                        searchQuery = "",
+                        timers = timers,
+                        categories = allCategories,
+                        shortcuts = shortcuts
+                    )
+                }
+                .onFailure { error ->
+                    _uiState.value = DashboardUiState.Error(error.message ?: "Unknown error")
+                }
         }
     }
 
