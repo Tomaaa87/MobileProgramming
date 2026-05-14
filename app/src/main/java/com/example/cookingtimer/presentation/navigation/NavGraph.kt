@@ -23,32 +23,25 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable(
-            route = Screen.Dashboard.route,
-            arguments = listOf(
-                navArgument("name") { 
-                    type = NavType.StringType
-                    defaultValue = "Tom"
-                },
-                navArgument("email") { 
-                    type = NavType.StringType
-                    defaultValue = ""
-                }
-            )
-        ) { backStackEntry ->
-            val name = backStackEntry.arguments?.getString("name") ?: "Tom"
-            val email = backStackEntry.arguments?.getString("email") ?: ""
+        composable(route = Screen.Dashboard.route) { 
             val viewModel: DashboardViewModel = hiltViewModel()
             DashboardScreen(
                 viewModel = viewModel,
-                name = name, 
-                email = email,
-                onShortcutClick = { shortcut ->
-                    when(shortcut) {
-                        "Add Timer" -> navController.navigate(Screen.AddTimer.createRoute("Dashboard"))
-                        "Profile" -> navController.navigate(Screen.Profile.route)
-                    }
+                onTimerClick = { timerId ->
+                    navController.navigate(Screen.TimerDetail.createRoute(timerId))
                 }
+            )
+        }
+        composable(
+            route = Screen.TimerDetail.route,
+            arguments = listOf(
+                navArgument("timerId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val timerId = backStackEntry.arguments?.getInt("timerId") ?: 0
+            TimerDetailScreen(
+                timerId = timerId,
+                onNavigateBack = { navController.navigateUp() }
             )
         }
         composable(Screen.Login.route) {
@@ -68,11 +61,15 @@ fun NavGraph(
             RegisterScreen(
                 viewModel = viewModel,
                 onNavigate = {
-                    navController.navigate(Screen.Dashboard.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
-                onLoginClick = { navController.navigate(Screen.Login.route) }
+                onLoginClick = { 
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                    }
+                }
             )
         }
         composable(Screen.Profile.route) {
@@ -86,21 +83,16 @@ fun NavGraph(
                 }
             )
         }
-        composable(
-            route = Screen.AddTimer.route,
-            arguments = listOf(
-                navArgument("source") {
-                    type = NavType.StringType
-                    defaultValue = "Default"
-                }
-            )
-        ) { backStackEntry ->
-            val source = backStackEntry.arguments?.getString("source") ?: "Default"
+        composable(route = Screen.AddTimer.route) {
             val viewModel: AddTimerViewModel = hiltViewModel()
             AddTimerScreen(
-                source = source,
                 viewModel = viewModel,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { timerId ->
+                    navController.navigate(Screen.TimerDetail.createRoute(timerId)) {
+                        popUpTo(Screen.AddTimer.route) { inclusive = true }
+                    }
+                }
             )
         }
     }

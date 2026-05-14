@@ -6,10 +6,10 @@ sealed interface DashboardUiState {
     object Init : DashboardUiState
     object Loading : DashboardUiState
     data class Success(
+        val userName: String,
         val searchQuery: String,
         val timers: List<TimerData>,
-        val categories: List<String>,
-        val shortcuts: List<String>
+        val categories: List<String>
     ) : DashboardUiState
     data class Error(val message: String) : DashboardUiState
 }

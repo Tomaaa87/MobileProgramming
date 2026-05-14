@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,9 +29,7 @@ import com.example.cookingtimer.model.TimerData
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    name: String = "Tom",
-    email: String = "",
-    onShortcutClick: (String) -> Unit
+    onTimerClick: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -43,15 +42,14 @@ fun DashboardScreen(
         is DashboardUiState.Success -> {
             val state = uiState as DashboardUiState.Success
             StatelessDashboardScreen(
-                name = name,
-                email = email,
+                name = state.userName,
                 searchQuery = state.searchQuery,
                 timers = state.timers,
                 categories = state.categories,
-                shortcuts = state.shortcuts,
                 onSearchChange = viewModel::onSearchChange,
                 onTimerToggle = viewModel::toggleTimer,
-                onShortcutClick = onShortcutClick
+                onDeleteTimer = viewModel::deleteTimer,
+                onTimerClick = onTimerClick
             )
         }
         else -> { /* Init */ }
@@ -61,14 +59,13 @@ fun DashboardScreen(
 @Composable
 fun StatelessDashboardScreen(
     name: String,
-    email: String,
     searchQuery: String,
     timers: List<TimerData>,
     categories: List<String>,
-    shortcuts: List<String>,
     onSearchChange: (String) -> Unit,
     onTimerToggle: (Int) -> Unit,
-    onShortcutClick: (String) -> Unit
+    onDeleteTimer: (Int) -> Unit,
+    onTimerClick: (Int) -> Unit
 ) {
     var isShortTimersOnly by remember { mutableStateOf(false) }
 
@@ -93,28 +90,6 @@ fun StatelessDashboardScreen(
                 title = "Dashboard",
                 subtitle = "Hello, $name! Ready to cook something delicious?"
             )
-        }
-
-        // --- NEW: Shortcut Section (Simplified HomeShortcut) ---
-        item(span = { GridItemSpan(2) }) {
-            Column {
-                Text(
-                    text = "Quick Shortcuts",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(shortcuts) { shortcut ->
-                        Card(
-                            modifier = Modifier.clickable { onShortcutClick(shortcut) },
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                        ) {
-                            Text(shortcut, modifier = Modifier.padding(12.dp), fontSize = 14.sp)
-                        }
-                    }
-                }
-            }
         }
 
         item(span = { GridItemSpan(2) }) {
@@ -164,16 +139,20 @@ fun StatelessDashboardScreen(
         items(filteredTimers) { timer ->
             TimerCardWithAction(
                 timer = timer,
-                onToggle = { onTimerToggle(timer.id) }
+                onToggle = { onTimerToggle(timer.id) },
+                onDelete = { onDeleteTimer(timer.id) },
+                onClick = { onTimerClick(timer.id) }
             )
         }
     }
 }
 
 @Composable
-fun TimerCardWithAction(timer: TimerData, onToggle: () -> Unit) {
+fun TimerCardWithAction(timer: TimerData, onToggle: () -> Unit, onDelete: () -> Unit, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -182,13 +161,27 @@ fun TimerCardWithAction(timer: TimerData, onToggle: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(timer.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                IconButton(onClick = onToggle) {
-                    Icon(
-                        Icons.Default.PlayArrow,
-                        contentDescription = "Toggle",
-                        tint = if (timer.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                    )
+                Text(
+                    text = timer.title, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 16.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                Row {
+                    IconButton(onClick = onToggle) {
+                        Icon(
+                            Icons.Default.PlayArrow,
+                            contentDescription = "Toggle",
+                            tint = if (timer.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
             Text(timer.duration, fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)

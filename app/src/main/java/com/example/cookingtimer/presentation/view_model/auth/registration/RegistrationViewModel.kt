@@ -2,7 +2,7 @@ package com.example.cookingtimer.presentation.view_model.auth.registration
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cookingtimer.di.repository.AuthRepository
+import com.example.cookingtimer.model.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

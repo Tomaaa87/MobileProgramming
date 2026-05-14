@@ -2,7 +2,7 @@ package com.example.cookingtimer.presentation.view_model.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cookingtimer.di.repository.ProfileRepository
+import com.example.cookingtimer.model.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,19 +24,20 @@ class ProfileViewModel @Inject constructor(
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
     init {
-        loadProfile()
+        observeProfile()
     }
 
-    private fun loadProfile() {
+    private fun observeProfile() {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-            profileRepository.getProfileData()
-                .onSuccess { data ->
+            profileRepository.getProfileDataFlow().collect { data ->
+                if (data != null) {
                     _uiState.value = ProfileUiState.Success(data)
+                } else {
+                    // Trigger seeding if needed
+                    profileRepository.getProfileData()
                 }
-                .onFailure { error ->
-                    _uiState.value = ProfileUiState.Error(error.message ?: "Unknown error")
-                }
+            }
         }
     }
 

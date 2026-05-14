@@ -53,6 +53,12 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation("androidx.navigation:navigation-compose:2.9.7")
 
+    // Room
+    val roomVersion = "2.8.4"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
     // Hilt core library
     implementation("com.google.dagger:hilt-android:2.59.2")
 

@@ -18,63 +18,86 @@ import com.example.cookingtimer.presentation.view_model.timer.AddTimerViewModel
 
 @Composable
 fun AddTimerScreen(
-    source: String,
     viewModel: AddTimerViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var name by rememberSaveable { mutableStateOf("") }
     var duration by rememberSaveable { mutableStateOf("") }
     var isFavorite by rememberSaveable { mutableStateOf(false) }
-    
-    val categories = listOf("General", "Baking", "Grilling", "Boiling", "Steaming")
-    var selectedCategory by rememberSaveable { mutableStateOf(categories[0]) }
-    
-    val difficulties = listOf("Easy", "Medium", "Hard")
-    var selectedDifficulty by rememberSaveable { mutableStateOf(difficulties[0]) }
 
+    // State for Ingredients and Steps
+    var ingredientName by remember { mutableStateOf("") }
+    var ingredientAmount by remember { mutableStateOf("") }
+    val ingredients = remember { mutableStateListOf<Pair<String, String>>() }
+
+    var stepInstruction by remember { mutableStateOf("") }
+    val steps = remember { mutableStateListOf<String>() }
+    
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
                 is AddTimerNavigationEvent.NavigateBack -> onNavigateBack()
-                else -> { /* Handle other events if any */ }
+                is AddTimerNavigationEvent.NavigateToDetail -> onNavigateToDetail(event.timerId)
             }
         }
     }
 
-    when (uiState) {
+    when (val state = uiState) {
         is AddTimerUiState.Loading -> LoadingScreen()
         is AddTimerUiState.Error -> ErrorScreen(
-            message = (uiState as AddTimerUiState.Error).message,
+            message = state.message,
             onRetry = { viewModel.resetUiState() }
         )
-        else -> {
+        is AddTimerUiState.Init -> {
+            var selectedCategory by rememberSaveable { 
+                mutableStateOf(if (state.categories.isNotEmpty()) state.categories[0] else "General") 
+            }
+            
             StatelessAddTimerScreen(
-                source = source,
                 name = name,
                 onNameChange = { name = it },
                 duration = duration,
                 onDurationChange = { duration = it },
                 isFavorite = isFavorite,
                 onFavoriteChange = { isFavorite = it },
-                categories = categories,
+                categories = state.categories.ifEmpty { listOf("General") },
                 selectedCategory = selectedCategory,
                 onCategorySelected = { selectedCategory = it },
-                difficulties = difficulties,
-                selectedDifficulty = selectedDifficulty,
-                onDifficultySelected = { selectedDifficulty = it },
+                ingredientName = ingredientName,
+                onIngredientNameChange = { ingredientName = it },
+                ingredientAmount = ingredientAmount,
+                onIngredientAmountChange = { ingredientAmount = it },
+                ingredients = ingredients,
+                onAddIngredient = {
+                    if (ingredientName.isNotBlank() && ingredientAmount.isNotBlank()) {
+                        ingredients.add(ingredientName to ingredientAmount)
+                        ingredientName = ""
+                        ingredientAmount = ""
+                    }
+                },
+                stepInstruction = stepInstruction,
+                onStepInstructionChange = { stepInstruction = it },
+                steps = steps,
+                onAddStep = {
+                    if (stepInstruction.isNotBlank()) {
+                        steps.add(stepInstruction)
+                        stepInstruction = ""
+                    }
+                },
                 onAddTimerClick = {
-                    viewModel.addTimer(name, duration, selectedCategory, selectedDifficulty, isFavorite)
+                    viewModel.addTimer(name, duration, selectedCategory, isFavorite, ingredients.toList(), steps.toList())
                 }
             )
         }
+        else -> {}
     }
 }
 
 @Composable
 fun StatelessAddTimerScreen(
-    source: String,
     name: String,
     onNameChange: (String) -> Unit,
     duration: String,
@@ -84,9 +107,16 @@ fun StatelessAddTimerScreen(
     categories: List<String>,
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
-    difficulties: List<String>,
-    selectedDifficulty: String,
-    onDifficultySelected: (String) -> Unit,
+    ingredientName: String,
+    onIngredientNameChange: (String) -> Unit,
+    ingredientAmount: String,
+    onIngredientAmountChange: (String) -> Unit,
+    ingredients: List<Pair<String, String>>,
+    onAddIngredient: () -> Unit,
+    stepInstruction: String,
+    onStepInstructionChange: (String) -> Unit,
+    steps: List<String>,
+    onAddStep: () -> Unit,
     onAddTimerClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -100,10 +130,13 @@ fun StatelessAddTimerScreen(
     ) {
         ScreenHeader(
             title = "Add Timer",
-            subtitle = "Source: $source. Create a new cooking timer."
+            subtitle = "Create a new cooking timer with recipe."
         )
 
         FormCard {
+            Text("Basic Information", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            
             ValidatedTextField(
                 value = name,
                 onValueChange = onNameChange,
@@ -131,15 +164,6 @@ fun StatelessAddTimerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            DropdownField(
-                label = "Difficulty",
-                options = difficulties,
-                selectedOption = selectedDifficulty,
-                onOptionSelected = onDifficultySelected
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = isFavorite,
@@ -148,13 +172,47 @@ fun StatelessAddTimerScreen(
                 Text("Mark as Favorite")
             }
 
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text("Ingredients", style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    OutlinedTextField(value = ingredientName, onValueChange = onIngredientNameChange, label = { Text("Name") })
+                    OutlinedTextField(value = ingredientAmount, onValueChange = onIngredientAmountChange, label = { Text("Amount") })
+                }
+                IconButton(onClick = onAddIngredient) {
+                    Text("+")
+                }
+            }
+            ingredients.forEach { (n, a) ->
+                Text("• $n ($a)", style = MaterialTheme.typography.bodySmall)
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text("Instructions", style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = stepInstruction,
+                    onValueChange = onStepInstructionChange,
+                    label = { Text("Step Instruction") },
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = onAddStep) {
+                    Text("+")
+                }
+            }
+            steps.forEachIndexed { index, s ->
+                Text("${index + 1}. $s", style = MaterialTheme.typography.bodySmall)
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = onAddTimerClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Add Timer")
+                Text("Save and View Details")
             }
         }
     }
