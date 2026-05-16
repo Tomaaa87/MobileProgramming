@@ -7,12 +7,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TimerDao {
-    @Query("SELECT * FROM timers")
-    fun getAllTimers(): Flow<List<TimerEntity>>
+    @Query("SELECT * FROM timers WHERE userId = :userId")
+    fun getAllTimers(userId: Int): Flow<List<TimerEntity>>
 
     @Transaction
-    @Query("SELECT * FROM timers")
-    fun getTimersWithSteps(): Flow<List<TimerWithSteps>>
+    @Query("SELECT * FROM timers WHERE userId = :userId")
+    fun getTimersWithSteps(userId: Int): Flow<List<TimerWithSteps>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTimer(timer: TimerEntity): Long

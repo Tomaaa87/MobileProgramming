@@ -6,11 +6,14 @@ import com.example.cookingtimer.model.data.local.entity.IngredientEntity
 import com.example.cookingtimer.model.data.local.entity.RecipeStepEntity
 import com.example.cookingtimer.model.data.local.entity.TimerWithSteps
 
+import kotlinx.coroutines.flow.Flow
+
 interface TimerRepository {
+    fun getTimersFlow(): Flow<List<TimerData>>
     suspend fun getTimers(): Result<List<TimerData>>
     suspend fun addTimer(
         name: String,
-        duration: String,
+        totalSeconds: Long,
         category: String,
         isFavorite: Boolean,
         ingredients: List<Pair<String, String>> = emptyList(),

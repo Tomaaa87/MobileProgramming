@@ -8,6 +8,7 @@ sealed interface DashboardUiState {
     data class Success(
         val userName: String,
         val searchQuery: String,
+        val selectedCategory: String = "All",
         val timers: List<TimerData>,
         val categories: List<String>
     ) : DashboardUiState

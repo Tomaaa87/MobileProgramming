@@ -49,7 +49,10 @@ fun ProfileScreen(
         is ProfileUiState.Success -> {
             StatelessProfileScreen(
                 profileData = (uiState as ProfileUiState.Success).profileData,
-                onLogoutClick = onLogoutClick
+                onLogoutAction = {
+                    viewModel.logout()
+                    onLogoutClick()
+                }
             )
         }
         else -> { /* Do nothing for Init or other states */ }
@@ -60,7 +63,7 @@ fun ProfileScreen(
 @Composable
 fun StatelessProfileScreen(
     profileData: ProfileData,
-    onLogoutClick: () -> Unit
+    onLogoutAction: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -85,7 +88,7 @@ fun StatelessProfileScreen(
                 Button(
                     onClick = {
                         showLogoutDialog = false
-                        onLogoutClick()
+                        onLogoutAction()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) { Text("Log Out") }

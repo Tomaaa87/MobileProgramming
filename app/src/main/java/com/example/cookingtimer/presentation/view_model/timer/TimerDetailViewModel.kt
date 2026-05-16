@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.cookingtimer.model.repository.RecipeRepository
 import com.example.cookingtimer.model.repository.TimerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,27 +22,45 @@ class TimerDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<TimerDetailUiState>(TimerDetailUiState.Init)
     val uiState: StateFlow<TimerDetailUiState> = _uiState.asStateFlow()
 
+    private var tickerJob: Job? = null
+
     fun loadTimerDetail(timerId: Int) {
         viewModelScope.launch {
             _uiState.value = TimerDetailUiState.Loading
             
-            val timerResult = timerRepository.getTimerById(timerId)
-            val stepsResult = recipeRepository.getSteps(timerId)
-            val ingredientsResult = recipeRepository.getIngredients(timerId)
+            // Observe the timer flow for live updates from DB
+            timerRepository.getTimersFlow().collect { timers ->
+                val timer = timers.find { it.id == timerId }
+                val stepsResult = recipeRepository.getSteps(timerId)
+                val ingredientsResult = recipeRepository.getIngredients(timerId)
 
-            if (timerResult.isSuccess && stepsResult.isSuccess && ingredientsResult.isSuccess) {
-                val timer = timerResult.getOrNull()
-                if (timer != null) {
+                if (timer != null && stepsResult.isSuccess && ingredientsResult.isSuccess) {
                     _uiState.value = TimerDetailUiState.Success(
                         timer = timer,
                         steps = stepsResult.getOrDefault(emptyList()),
                         ingredients = ingredientsResult.getOrDefault(emptyList())
                     )
-                } else {
+                } else if (timer == null) {
                     _uiState.value = TimerDetailUiState.Error("Timer not found")
                 }
-            } else {
-                _uiState.value = TimerDetailUiState.Error("Failed to load timer details")
+            }
+        }
+        startTicker()
+    }
+
+    private fun startTicker() {
+        tickerJob?.cancel()
+        tickerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                val state = _uiState.value
+                if (state is TimerDetailUiState.Success && state.timer.isRunning && state.timer.remainingSeconds > 0) {
+                    val updatedTimer = state.timer.copy(
+                        remainingSeconds = state.timer.remainingSeconds - 1,
+                        isRunning = state.timer.remainingSeconds > 1
+                    )
+                    timerRepository.updateTimer(updatedTimer)
+                }
             }
         }
     }

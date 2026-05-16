@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.cookingtimer.presentation.ui.components.CircularTimer
 import com.example.cookingtimer.presentation.ui.components.ErrorScreen
 import com.example.cookingtimer.presentation.ui.components.IngredientList
 import com.example.cookingtimer.presentation.ui.components.LoadingScreen
@@ -86,12 +87,19 @@ fun TimerDetailContent(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        Text(
-            text = state.timer.duration,
-            style = MaterialTheme.typography.displaySmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            CircularTimer(
+                progress = state.timer.progress,
+                text = state.timer.durationText,
+                modifier = Modifier.size(150.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = state.timer.description,
             style = MaterialTheme.typography.bodyLarge,

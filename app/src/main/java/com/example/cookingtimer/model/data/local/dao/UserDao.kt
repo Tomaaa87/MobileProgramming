@@ -6,11 +6,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
-    @Query("SELECT * FROM user_profile WHERE id = 1")
-    fun getUserProfile(): Flow<UserEntity?>
+    @Query("SELECT * FROM user_profile WHERE id = :userId")
+    fun getUserProfile(userId: Int): Flow<UserEntity?>
+
+    @Query("SELECT * FROM user_profile WHERE email = :email LIMIT 1")
+    suspend fun getUserByEmail(email: String): UserEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdateUser(user: UserEntity)
+    suspend fun insertOrUpdateUser(user: UserEntity): Long
 
     @Update
     suspend fun updateUser(user: UserEntity)

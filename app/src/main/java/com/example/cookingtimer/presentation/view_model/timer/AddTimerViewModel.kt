@@ -48,7 +48,8 @@ class AddTimerViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AddTimerUiState.Loading
 
-            timerRepository.addTimer(name, duration, category, isFavorite, ingredients, steps)
+            val totalSeconds = (duration.toLongOrNull() ?: 0L) * 60L
+            timerRepository.addTimer(name, totalSeconds, category, isFavorite, ingredients, steps)
                 .onSuccess { timerId ->
                     _uiState.value = AddTimerUiState.Success
                     _navigationEvent.send(AddTimerNavigationEvent.NavigateToDetail(timerId.toInt()))

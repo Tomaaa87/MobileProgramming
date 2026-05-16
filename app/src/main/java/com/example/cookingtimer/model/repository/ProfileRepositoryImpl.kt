@@ -12,16 +12,21 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ProfileRepositoryImpl @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val sessionManager: SessionManager
 ) : ProfileRepository {
 
     override fun getProfileDataFlow(): Flow<ProfileData?> {
-        return userDao.getUserProfile().map { it?.toDomain() }
+        val userId = sessionManager.getUserId()
+        return userDao.getUserProfile(userId).map { it?.toDomain() }
     }
 
     override suspend fun getProfileData(): Result<ProfileData> = withContext(Dispatchers.IO) {
         try {
-            val user = userDao.getUserProfile().first() ?: UserEntity(
+            val userId = sessionManager.getUserId()
+            val user = userDao.getUserProfile(userId).first() ?: UserEntity(
+                email = "default@example.com",
+                password = "password",
                 displayName = "New Chef",
                 bio = "Cooking enthusiast.",
                 notificationsEnabled = true,

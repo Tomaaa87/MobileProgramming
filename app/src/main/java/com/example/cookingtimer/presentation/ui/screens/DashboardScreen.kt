@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,9 +45,11 @@ fun DashboardScreen(
             StatelessDashboardScreen(
                 name = state.userName,
                 searchQuery = state.searchQuery,
+                selectedCategory = state.selectedCategory,
                 timers = state.timers,
                 categories = state.categories,
                 onSearchChange = viewModel::onSearchChange,
+                onCategorySelect = viewModel::onCategorySelect,
                 onTimerToggle = viewModel::toggleTimer,
                 onDeleteTimer = viewModel::deleteTimer,
                 onTimerClick = onTimerClick
@@ -60,21 +63,28 @@ fun DashboardScreen(
 fun StatelessDashboardScreen(
     name: String,
     searchQuery: String,
+    selectedCategory: String,
     timers: List<TimerData>,
     categories: List<String>,
     onSearchChange: (String) -> Unit,
+    onCategorySelect: (String) -> Unit,
     onTimerToggle: (Int) -> Unit,
     onDeleteTimer: (Int) -> Unit,
     onTimerClick: (Int) -> Unit
 ) {
     var isShortTimersOnly by remember { mutableStateOf(false) }
 
-    val filteredTimers = if (isShortTimersOnly) {
-        timers.filter {
-            val minutes = it.duration.substringBefore(":").toIntOrNull() ?: 0
-            minutes <= 15
-        }
-    } else timers
+    val filteredTimers = timers.filter { timer ->
+        val matchesSearch = timer.title.contains(searchQuery, ignoreCase = true) || 
+                          timer.description.contains(searchQuery, ignoreCase = true)
+        
+        val matchesCategory = selectedCategory == "All" || 
+                             timer.description.contains("Category: $selectedCategory", ignoreCase = true)
+        
+        val matchesShort = !isShortTimersOnly || (timer.totalSeconds / 60) <= 15
+        
+        matchesSearch && matchesCategory && matchesShort
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -96,7 +106,7 @@ fun StatelessDashboardScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = onSearchChange,
-                label = { Text("Search categories") },
+                label = { Text("Search timers") },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -111,7 +121,11 @@ fun StatelessDashboardScreen(
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(categories) { category ->
-                        CategoryChip(category)
+                        CategoryChip(
+                            name = category,
+                            isSelected = category == selectedCategory,
+                            onClick = { onCategorySelect(category) }
+                        )
                     }
                 }
 
@@ -127,7 +141,7 @@ fun StatelessDashboardScreen(
             }
         }
 
-        // --- Active Timers (Simplified TimerScreen elements) ---
+        // --- Active Timers ---
         item(span = { GridItemSpan(2) }) {
             Text(
                 text = "Active Timers",
@@ -136,69 +150,85 @@ fun StatelessDashboardScreen(
             )
         }
 
-        items(filteredTimers) { timer ->
-            TimerCardWithAction(
-                timer = timer,
-                onToggle = { onTimerToggle(timer.id) },
-                onDelete = { onDeleteTimer(timer.id) },
-                onClick = { onTimerClick(timer.id) }
-            )
+        if (filteredTimers.isEmpty()) {
+            item(span = { GridItemSpan(2) }) {
+                Text(
+                    text = "No timers found for this criteria.",
+                    modifier = Modifier.padding(top = 32.dp).fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            items(filteredTimers) { timer ->
+                TimerCardWithAction(
+                    timer = timer,
+                    onToggle = { onTimerToggle(timer.id) },
+                    onDelete = { onDeleteTimer(timer.id) },
+                    onClick = { onTimerClick(timer.id) }
+                )
+            }
         }
     }
 }
 
 @Composable
 fun TimerCardWithAction(timer: TimerData, onToggle: () -> Unit, onDelete: () -> Unit, onClick: () -> Unit) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp)
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = timer.title, 
-                    fontWeight = FontWeight.Bold, 
-                    fontSize = 16.sp,
-                    modifier = Modifier.weight(1f)
+        CircularTimer(
+            progress = timer.progress,
+            text = timer.durationText,
+            modifier = Modifier.size(100.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Text(
+            text = timer.title, 
+            fontWeight = FontWeight.Bold, 
+            fontSize = 16.sp,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            IconButton(onClick = onToggle) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Toggle",
+                    tint = if (timer.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                 )
-                Row {
-                    IconButton(onClick = onToggle) {
-                        Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = "Toggle",
-                            tint = if (timer.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                        )
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
             }
-            Text(timer.duration, fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(timer.description, fontSize = 12.sp, lineHeight = 16.sp)
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun CategoryChip(name: String) {
+private fun CategoryChip(name: String, isSelected: Boolean, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        modifier = Modifier.clickable { onClick() }
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

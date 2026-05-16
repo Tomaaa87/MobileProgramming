@@ -10,26 +10,37 @@ import com.example.cookingtimer.model.data.local.util.Mapper.toEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class TimerRepositoryImpl @Inject constructor(
     private val timerDao: TimerDao,
     private val recipeStepDao: RecipeStepDao,
-    private val ingredientDao: IngredientDao
+    private val ingredientDao: IngredientDao,
+    private val sessionManager: SessionManager
 ) : TimerRepository {
+
+    override fun getTimersFlow(): Flow<List<TimerData>> {
+        val userId = sessionManager.getUserId()
+        return timerDao.getAllTimers(userId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
 
     override suspend fun getTimers(): Result<List<TimerData>> = withContext(Dispatchers.IO) {
         try {
-            var entities = timerDao.getAllTimers().first()
+            val userId = sessionManager.getUserId()
+            var entities = timerDao.getAllTimers(userId).first()
             if (entities.isEmpty()) {
                 val seed = listOf(
-                    TimerEntity(title = "Pasta", duration = "10:00", description = "Category: Italian"),
-                    TimerEntity(title = "Soft Boiled Eggs", duration = "07:00", description = "Category: Breakfast"),
-                    TimerEntity(title = "White Rice", duration = "18:00", description = "Category: Healthy"),
-                    TimerEntity(title = "Steak", duration = "06:00", description = "Category: Dinner")
+                    TimerEntity(userId = userId, title = "Pasta", totalSeconds = 600, remainingSeconds = 600, description = "Category: Italian"),
+                    TimerEntity(userId = userId, title = "Soft Boiled Eggs", totalSeconds = 420, remainingSeconds = 420, description = "Category: Breakfast"),
+                    TimerEntity(userId = userId, title = "White Rice", totalSeconds = 1080, remainingSeconds = 1080, description = "Category: Healthy"),
+                    TimerEntity(userId = userId, title = "Steak", totalSeconds = 360, remainingSeconds = 360, description = "Category: Dinner")
                 )
                 seed.forEach { timerDao.insertTimer(it) }
-                entities = timerDao.getAllTimers().first()
+                entities = timerDao.getAllTimers(userId).first()
             }
             Result.success(entities.map { it.toDomain() })
         } catch (e: Exception) {
@@ -39,16 +50,19 @@ class TimerRepositoryImpl @Inject constructor(
 
     override suspend fun addTimer(
         name: String,
-        duration: String,
+        totalSeconds: Long,
         category: String,
         isFavorite: Boolean,
         ingredients: List<Pair<String, String>>,
         steps: List<String>
     ): Result<Long> = withContext(Dispatchers.IO) {
         try {
+            val userId = sessionManager.getUserId()
             val entity = TimerEntity(
+                userId = userId,
                 title = name,
-                duration = duration,
+                totalSeconds = totalSeconds,
+                remainingSeconds = totalSeconds,
                 description = "Category: $category",
                 isRunning = false
             )
@@ -74,7 +88,8 @@ class TimerRepositoryImpl @Inject constructor(
 
     override suspend fun updateTimer(timer: TimerData): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            timerDao.updateTimer(timer.toEntity())
+            val userId = sessionManager.getUserId()
+            timerDao.updateTimer(timer.toEntity(userId = userId))
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -106,7 +121,8 @@ class TimerRepositoryImpl @Inject constructor(
 
     override suspend fun getTimersWithSteps(): Result<List<TimerWithSteps>> = withContext(Dispatchers.IO) {
         try {
-            val list = timerDao.getTimersWithSteps().first()
+            val userId = sessionManager.getUserId()
+            val list = timerDao.getTimersWithSteps(userId).first()
             Result.success(list)
         } catch (e: Exception) {
             Result.failure(e)

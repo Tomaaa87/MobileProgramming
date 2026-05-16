@@ -10,18 +10,21 @@ object Mapper {
         return TimerData(
             id = this.id,
             title = this.title,
-            duration = this.duration,
+            totalSeconds = this.totalSeconds,
+            remainingSeconds = this.remainingSeconds,
             description = this.description,
             isRunning = this.isRunning
         )
     }
 
-    fun TimerData.toEntity(categoryId: Int? = null): TimerEntity {
+    fun TimerData.toEntity(userId: Int, categoryId: Int? = null): TimerEntity {
         return TimerEntity(
             id = this.id,
+            userId = userId,
             categoryId = categoryId,
             title = this.title,
-            duration = this.duration,
+            totalSeconds = this.totalSeconds,
+            remainingSeconds = this.remainingSeconds,
             description = this.description,
             isRunning = this.isRunning
         )

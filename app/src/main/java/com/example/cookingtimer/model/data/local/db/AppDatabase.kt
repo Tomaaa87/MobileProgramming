@@ -15,7 +15,7 @@ import com.example.cookingtimer.model.data.local.util.Converters
         RecipeStepEntity::class,
         IngredientEntity::class
     ],
-    version = 2,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

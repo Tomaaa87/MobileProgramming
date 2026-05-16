@@ -3,6 +3,7 @@ package com.example.cookingtimer.model.repository
 import com.example.cookingtimer.model.data.local.dao.CategoryDao
 import com.example.cookingtimer.model.data.local.entity.CategoryEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -10,6 +11,10 @@ import javax.inject.Inject
 class CategoryRepositoryImpl @Inject constructor(
     private val categoryDao: CategoryDao
 ) : CategoryRepository {
+
+    override fun getCategoriesFlow(): Flow<List<CategoryEntity>> {
+        return categoryDao.getAllCategories()
+    }
 
     override suspend fun getCategories(): Result<List<CategoryEntity>> = withContext(Dispatchers.IO) {
         try {

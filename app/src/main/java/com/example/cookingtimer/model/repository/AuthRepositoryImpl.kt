@@ -8,15 +8,19 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val sessionManager: SessionManager
 ) : AuthRepository {
     override suspend fun login(email: String, password: String): Result<Boolean> = withContext(Dispatchers.IO) {
         delay(1000)
-        // Allow login if email and password are provided
-        if (email.isNotBlank() && password.length >= 6) {
+        val user = userDao.getUserByEmail(email)
+        if (user != null && user.password == password) {
+            sessionManager.login(user.id)
             Result.success(true)
+        } else if (user != null && user.password != password) {
+            Result.failure(Exception("Incorrect password"))
         } else {
-            Result.failure(Exception("Invalid email or password"))
+            Result.failure(Exception("User not found. Please register first."))
         }
     }
 
@@ -24,9 +28,15 @@ class AuthRepositoryImpl @Inject constructor(
         delay(1000)
         if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
             try {
-                userDao.insertOrUpdateUser(
+                // Check if user already exists
+                if (userDao.getUserByEmail(email) != null) {
+                    return@withContext Result.failure(Exception("Email already registered"))
+                }
+
+                val userId = userDao.insertOrUpdateUser(
                     UserEntity(
-                        id = 1, // Fixed ID for local user profile
+                        email = email,
+                        password = password,
                         displayName = fullName,
                         bio = "New cooking enthusiast!",
                         notificationsEnabled = true,
@@ -36,6 +46,7 @@ class AuthRepositoryImpl @Inject constructor(
                         achievements = emptyList()
                     )
                 )
+                sessionManager.login(userId.toInt())
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -43,5 +54,9 @@ class AuthRepositoryImpl @Inject constructor(
         } else {
             Result.failure(Exception("Please fill in all fields."))
         }
+    }
+
+    override suspend fun logout() {
+        sessionManager.logout()
     }
 }
