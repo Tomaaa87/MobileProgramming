@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.repository
+package com.example.cookingtimer.model.repository.profile
 
 import com.example.cookingtimer.presentation.view_model.profile.ProfileData
 import kotlinx.coroutines.flow.Flow

@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model
+package com.example.cookingtimer.model.repository.timer
 
 data class TimerData(
     val id: Int,
@@ -14,7 +14,7 @@ data class TimerData(
             val seconds = remainingSeconds % 60
             return "%02d:%02d".format(minutes, seconds)
         }
-    
+
     val progress: Float
         get() = if (totalSeconds > 0) remainingSeconds.toFloat() / totalSeconds.toFloat() else 0f
 }

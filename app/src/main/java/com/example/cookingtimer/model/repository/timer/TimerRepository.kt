@@ -1,11 +1,6 @@
-package com.example.cookingtimer.model.repository
+package com.example.cookingtimer.model.repository.timer
 
-import com.example.cookingtimer.model.TimerData
-import com.example.cookingtimer.model.data.local.entity.CategoryEntity
-import com.example.cookingtimer.model.data.local.entity.IngredientEntity
-import com.example.cookingtimer.model.data.local.entity.RecipeStepEntity
 import com.example.cookingtimer.model.data.local.entity.TimerWithSteps
-
 import kotlinx.coroutines.flow.Flow
 
 interface TimerRepository {

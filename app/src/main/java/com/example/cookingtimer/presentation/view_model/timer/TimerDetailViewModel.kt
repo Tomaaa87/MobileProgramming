@@ -2,8 +2,8 @@ package com.example.cookingtimer.presentation.view_model.timer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cookingtimer.model.repository.RecipeRepository
-import com.example.cookingtimer.model.repository.TimerRepository
+import com.example.cookingtimer.model.repository.recipe.RecipeRepository
+import com.example.cookingtimer.model.repository.timer.TimerRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

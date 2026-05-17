@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.repository
+package com.example.cookingtimer.model.repository.category
 
 import com.example.cookingtimer.model.data.local.entity.CategoryEntity
 import kotlinx.coroutines.flow.Flow

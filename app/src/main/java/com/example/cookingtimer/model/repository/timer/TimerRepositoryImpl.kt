@@ -1,17 +1,20 @@
-package com.example.cookingtimer.model.repository
+package com.example.cookingtimer.model.repository.timer
 
-import com.example.cookingtimer.model.TimerData
 import com.example.cookingtimer.model.data.local.dao.IngredientDao
 import com.example.cookingtimer.model.data.local.dao.RecipeStepDao
 import com.example.cookingtimer.model.data.local.dao.TimerDao
-import com.example.cookingtimer.model.data.local.entity.*
-import com.example.cookingtimer.model.data.local.util.Mapper.toDomain
-import com.example.cookingtimer.model.data.local.util.Mapper.toEntity
+import com.example.cookingtimer.model.data.local.entity.IngredientEntity
+import com.example.cookingtimer.model.data.local.entity.RecipeStepEntity
+import com.example.cookingtimer.model.data.local.entity.TimerEntity
+import com.example.cookingtimer.model.data.local.entity.TimerWithSteps
+import com.example.cookingtimer.model.repository.mapper.Mapper.toDomain
+import com.example.cookingtimer.model.repository.mapper.Mapper.toEntity
+import com.example.cookingtimer.model.repository.SessionManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class TimerRepositoryImpl @Inject constructor(
@@ -34,10 +37,34 @@ class TimerRepositoryImpl @Inject constructor(
             var entities = timerDao.getAllTimers(userId).first()
             if (entities.isEmpty()) {
                 val seed = listOf(
-                    TimerEntity(userId = userId, title = "Pasta", totalSeconds = 600, remainingSeconds = 600, description = "Category: Italian"),
-                    TimerEntity(userId = userId, title = "Soft Boiled Eggs", totalSeconds = 420, remainingSeconds = 420, description = "Category: Breakfast"),
-                    TimerEntity(userId = userId, title = "White Rice", totalSeconds = 1080, remainingSeconds = 1080, description = "Category: Healthy"),
-                    TimerEntity(userId = userId, title = "Steak", totalSeconds = 360, remainingSeconds = 360, description = "Category: Dinner")
+                    TimerEntity(
+                        userId = userId,
+                        title = "Pasta",
+                        totalSeconds = 600,
+                        remainingSeconds = 600,
+                        description = "Category: Italian"
+                    ),
+                    TimerEntity(
+                        userId = userId,
+                        title = "Soft Boiled Eggs",
+                        totalSeconds = 420,
+                        remainingSeconds = 420,
+                        description = "Category: Breakfast"
+                    ),
+                    TimerEntity(
+                        userId = userId,
+                        title = "White Rice",
+                        totalSeconds = 1080,
+                        remainingSeconds = 1080,
+                        description = "Category: Healthy"
+                    ),
+                    TimerEntity(
+                        userId = userId,
+                        title = "Steak",
+                        totalSeconds = 360,
+                        remainingSeconds = 360,
+                        description = "Category: Dinner"
+                    )
                 )
                 seed.forEach { timerDao.insertTimer(it) }
                 entities = timerDao.getAllTimers(userId).first()
@@ -76,7 +103,11 @@ class TimerRepositoryImpl @Inject constructor(
 
             steps.forEachIndexed { index, instruction ->
                 recipeStepDao.insertStep(
-                    RecipeStepEntity(timerId = timerId, stepNumber = index + 1, instruction = instruction)
+                    RecipeStepEntity(
+                        timerId = timerId,
+                        stepNumber = index + 1,
+                        instruction = instruction
+                    )
                 )
             }
 
@@ -110,22 +141,24 @@ class TimerRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTimerById(timerId: Int): Result<TimerData?> = withContext(Dispatchers.IO) {
-        try {
-            val entity = timerDao.getTimerById(timerId)
-            Result.success(entity?.toDomain())
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun getTimerById(timerId: Int): Result<TimerData?> =
+        withContext(Dispatchers.IO) {
+            try {
+                val entity = timerDao.getTimerById(timerId)
+                Result.success(entity?.toDomain())
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
-    }
 
-    override suspend fun getTimersWithSteps(): Result<List<TimerWithSteps>> = withContext(Dispatchers.IO) {
-        try {
-            val userId = sessionManager.getUserId()
-            val list = timerDao.getTimersWithSteps(userId).first()
-            Result.success(list)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun getTimersWithSteps(): Result<List<TimerWithSteps>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val userId = sessionManager.getUserId()
+                val list = timerDao.getTimersWithSteps(userId).first()
+                Result.success(list)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
-    }
 }

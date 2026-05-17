@@ -1,7 +1,11 @@
-package com.example.cookingtimer.model.data.local.util
+package com.example.cookingtimer.model.repository.mapper
 
-import com.example.cookingtimer.model.TimerData
-import com.example.cookingtimer.model.data.local.entity.*
+import com.example.cookingtimer.model.data.local.entity.CategoryEntity
+import com.example.cookingtimer.model.data.local.entity.IngredientEntity
+import com.example.cookingtimer.model.data.local.entity.RecipeStepEntity
+import com.example.cookingtimer.model.data.local.entity.TimerEntity
+import com.example.cookingtimer.model.data.local.entity.UserEntity
+import com.example.cookingtimer.model.repository.timer.TimerData
 import com.example.cookingtimer.presentation.view_model.profile.ProfileData
 
 object Mapper {
@@ -42,13 +46,11 @@ object Mapper {
         )
     }
 
-    // Category Mappings
+
     fun CategoryEntity.toDomain(): String = this.name
 
-    // Ingredient Mappings
     fun IngredientEntity.toDomain(): Pair<String, String> = this.name to this.amount
 
-    // Recipe Step Mappings
     fun RecipeStepEntity.toDomain(): String = this.instruction
 
 }

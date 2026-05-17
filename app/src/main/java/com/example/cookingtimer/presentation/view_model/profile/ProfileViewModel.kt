@@ -2,7 +2,8 @@ package com.example.cookingtimer.presentation.view_model.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cookingtimer.model.repository.ProfileRepository
+import com.example.cookingtimer.model.repository.profile.ProfileRepository
+import com.example.cookingtimer.model.repository.auth.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val authRepository: com.example.cookingtimer.model.repository.AuthRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Init)

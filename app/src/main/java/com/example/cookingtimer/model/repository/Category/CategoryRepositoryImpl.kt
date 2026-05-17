@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.repository
+package com.example.cookingtimer.model.repository.category
 
 import com.example.cookingtimer.model.data.local.dao.CategoryDao
 import com.example.cookingtimer.model.data.local.entity.CategoryEntity
@@ -16,22 +16,23 @@ class CategoryRepositoryImpl @Inject constructor(
         return categoryDao.getAllCategories()
     }
 
-    override suspend fun getCategories(): Result<List<CategoryEntity>> = withContext(Dispatchers.IO) {
-        try {
-            var categories = categoryDao.getAllCategories().first()
-            if (categories.isEmpty()) {
-                val seed = listOf(
-                    "Breakfast", "Lunch", "Dinner", "Dessert",
-                    "Snacking", "Healthy", "Vegan", "Italian", "Baking"
-                )
-                seed.forEach { categoryDao.insertCategory(CategoryEntity(name = it)) }
-                categories = categoryDao.getAllCategories().first()
+    override suspend fun getCategories(): Result<List<CategoryEntity>> =
+        withContext(Dispatchers.IO) {
+            try {
+                var categories = categoryDao.getAllCategories().first()
+                if (categories.isEmpty()) {
+                    val seed = listOf(
+                        "Breakfast", "Lunch", "Dinner", "Dessert",
+                        "Snacking", "Healthy", "Vegan", "Italian", "Baking"
+                    )
+                    seed.forEach { categoryDao.insertCategory(CategoryEntity(name = it)) }
+                    categories = categoryDao.getAllCategories().first()
+                }
+                Result.success(categories)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-            Result.success(categories)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
-    }
 
     override suspend fun addCategory(name: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {

@@ -5,6 +5,16 @@ import androidx.room.Room
 import com.example.cookingtimer.model.data.local.dao.*
 import com.example.cookingtimer.model.data.local.db.AppDatabase
 import com.example.cookingtimer.model.repository.*
+import com.example.cookingtimer.model.repository.category.CategoryRepository
+import com.example.cookingtimer.model.repository.category.CategoryRepositoryImpl
+import com.example.cookingtimer.model.repository.recipe.RecipeRepository
+import com.example.cookingtimer.model.repository.recipe.RecipeRepositoryImpl
+import com.example.cookingtimer.model.repository.auth.AuthRepository
+import com.example.cookingtimer.model.repository.auth.AuthRepositoryImpl
+import com.example.cookingtimer.model.repository.profile.ProfileRepository
+import com.example.cookingtimer.model.repository.profile.ProfileRepositoryImpl
+import com.example.cookingtimer.model.repository.timer.TimerRepository
+import com.example.cookingtimer.model.repository.timer.TimerRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

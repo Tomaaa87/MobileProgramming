@@ -1,6 +1,6 @@
 package com.example.cookingtimer.presentation.view_model.dashboard
 
-import com.example.cookingtimer.model.TimerData
+import com.example.cookingtimer.model.repository.timer.TimerData
 
 sealed interface DashboardUiState {
     object Init : DashboardUiState

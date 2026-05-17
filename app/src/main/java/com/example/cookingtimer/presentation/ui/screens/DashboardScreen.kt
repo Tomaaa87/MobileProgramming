@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cookingtimer.presentation.ui.components.*
 import com.example.cookingtimer.presentation.view_model.dashboard.DashboardUiState
 import com.example.cookingtimer.presentation.view_model.dashboard.DashboardViewModel
-import com.example.cookingtimer.model.TimerData
+import com.example.cookingtimer.model.repository.timer.TimerData
 
 @Composable
 fun DashboardScreen(

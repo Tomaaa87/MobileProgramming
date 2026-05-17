@@ -1,6 +1,6 @@
 package com.example.cookingtimer.presentation.view_model.timer
 
-import com.example.cookingtimer.model.TimerData
+import com.example.cookingtimer.model.repository.timer.TimerData
 import com.example.cookingtimer.model.data.local.entity.IngredientEntity
 import com.example.cookingtimer.model.data.local.entity.RecipeStepEntity
 

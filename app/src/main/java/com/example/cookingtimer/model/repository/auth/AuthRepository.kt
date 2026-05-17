@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.repository
+package com.example.cookingtimer.model.repository.auth
 
 interface AuthRepository {
     suspend fun login(email: String, password: String): Result<Boolean>
