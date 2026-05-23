@@ -1,65 +1,125 @@
 package com.example.cookingtimer.presentation.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.cookingtimer.presentation.ui.components.DropdownField
-import com.example.cookingtimer.presentation.ui.components.FormCard
-import com.example.cookingtimer.presentation.ui.components.ScreenHeader
-import com.example.cookingtimer.presentation.ui.components.TimerCard
-import com.example.cookingtimer.presentation.ui.components.ValidatedTextField
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.cookingtimer.presentation.ui.components.*
+import com.example.cookingtimer.presentation.view_model.timer.AddTimerNavigationEvent
+import com.example.cookingtimer.presentation.view_model.timer.AddTimerUiState
+import com.example.cookingtimer.presentation.view_model.timer.AddTimerViewModel
 
 @Composable
-fun AddTimerScreen() {
+fun AddTimerScreen(
+    viewModel: AddTimerViewModel,
+    onNavigateBack: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var durationValue by remember { mutableFloatStateOf(10f) }
-    var title by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var showErrors by remember { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var duration by rememberSaveable { mutableStateOf("") }
+    var isFavorite by rememberSaveable { mutableStateOf(false) }
 
+    // State for Ingredients and Steps
+    var ingredientName by remember { mutableStateOf("") }
+    var ingredientAmount by remember { mutableStateOf("") }
+    val ingredients = remember { mutableStateListOf<Pair<String, String>>() }
 
-    var counter by remember { mutableIntStateOf(0) }
-    val doubleCounter by remember { derivedStateOf { counter * 2 } }
+    var stepInstruction by remember { mutableStateOf("") }
+    val steps = remember { mutableStateListOf<String>() }
+    
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                is AddTimerNavigationEvent.NavigateBack -> onNavigateBack()
+                is AddTimerNavigationEvent.NavigateToDetail -> onNavigateToDetail(event.timerId)
+            }
+        }
+    }
 
+    when (val state = uiState) {
+        is AddTimerUiState.Loading -> LoadingScreen()
+        is AddTimerUiState.Error -> ErrorScreen(
+            message = state.message,
+            onRetry = { viewModel.resetUiState() }
+        )
+        is AddTimerUiState.Init -> {
+            var selectedCategory by rememberSaveable { 
+                mutableStateOf(if (state.categories.isNotEmpty()) state.categories[0] else "General") 
+            }
+            
+            StatelessAddTimerScreen(
+                name = name,
+                onNameChange = { name = it },
+                duration = duration,
+                onDurationChange = { duration = it },
+                isFavorite = isFavorite,
+                onFavoriteChange = { isFavorite = it },
+                categories = state.categories.ifEmpty { listOf("General") },
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it },
+                ingredientName = ingredientName,
+                onIngredientNameChange = { ingredientName = it },
+                ingredientAmount = ingredientAmount,
+                onIngredientAmountChange = { ingredientAmount = it },
+                ingredients = ingredients,
+                onAddIngredient = {
+                    if (ingredientName.isNotBlank() && ingredientAmount.isNotBlank()) {
+                        ingredients.add(ingredientName to ingredientAmount)
+                        ingredientName = ""
+                        ingredientAmount = ""
+                    }
+                },
+                stepInstruction = stepInstruction,
+                onStepInstructionChange = { stepInstruction = it },
+                steps = steps,
+                onAddStep = {
+                    if (stepInstruction.isNotBlank()) {
+                        steps.add(stepInstruction)
+                        stepInstruction = ""
+                    }
+                },
+                onAddTimerClick = {
+                    viewModel.addTimer(name, duration, selectedCategory, isFavorite, ingredients.toList(), steps.toList())
+                }
+            )
+        }
+        else -> {}
+    }
+}
 
-    var isChecked by remember { mutableStateOf(false) }
-
-    val ringtones = listOf("Classic Bell", "Digital Beep", "Piano Melody", "Forest Birds", "Ocean Waves")
-    var selectedRingtone by remember { mutableStateOf(ringtones[0]) }
-
-    val categories = listOf("General", "Baking", "Grilling", "Boiling", "Steaming")
-    var selectedCategory by remember { mutableStateOf(categories[0]) }
-
+@Composable
+fun StatelessAddTimerScreen(
+    name: String,
+    onNameChange: (String) -> Unit,
+    duration: String,
+    onDurationChange: (String) -> Unit,
+    isFavorite: Boolean,
+    onFavoriteChange: (Boolean) -> Unit,
+    categories: List<String>,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    ingredientName: String,
+    onIngredientNameChange: (String) -> Unit,
+    ingredientAmount: String,
+    onIngredientAmountChange: (String) -> Unit,
+    ingredients: List<Pair<String, String>>,
+    onAddIngredient: () -> Unit,
+    stepInstruction: String,
+    onStepInstructionChange: (String) -> Unit,
+    steps: List<String>,
+    onAddStep: () -> Unit,
+    onAddTimerClick: () -> Unit
+) {
     val scrollState = rememberScrollState()
-    val durationDisplay by remember { derivedStateOf { "${durationValue.toInt()} min" } }
 
     Column(
         modifier = Modifier
@@ -70,117 +130,27 @@ fun AddTimerScreen() {
     ) {
         ScreenHeader(
             title = "Add Timer",
-            subtitle = "Create a new cooking timer with custom options."
+            subtitle = "Create a new cooking timer with recipe."
         )
 
-        if (title.isNotBlank() || description.isNotBlank()) {
-            Text(
-                text = "Preview",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
+        FormCard {
+            Text("Basic Information", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            ValidatedTextField(
+                value = name,
+                onValueChange = onNameChange,
+                label = "Timer Name",
+                placeholder = "e.g. Pasta"
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                TimerCard(
-                    title = title.ifBlank { "Title" },
-                    duration = durationDisplay,
-                    description = description.ifBlank { "Description" }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = "Ringtone: $selectedRingtone • Category: $selectedCategory",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-
-
-        FormCard {
-            Text(
-                text = "Timer Duration: $durationDisplay",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Slider(
-                value = durationValue,
-                onValueChange = { durationValue = it },
-                valueRange = 1f..120f,
-                steps = 119,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             ValidatedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = "Timer Title",
-                placeholder = "Pasta",
-                error = if (showErrors && title.isBlank()) "Title is required" else null
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            ValidatedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = "Timer Description",
-                placeholder = "Boil water, then cook pasta...",
-                error = if (showErrors && description.isBlank()) "Description is required" else null
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Quantity: $counter (Double: $doubleCounter)")
-                Row {
-                    Button(onClick = { if (counter > 0) counter-- }) { Text("-") }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { counter++ }) { Text("+") }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { isChecked = it }
-                )
-                Text("Repeat timer daily")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            DropdownField(
-                label = "Ringtone",
-                options = ringtones,
-                selectedOption = selectedRingtone,
-                onOptionSelected = { selectedRingtone = it }
+                value = duration,
+                onValueChange = onDurationChange,
+                label = "Duration (minutes)",
+                placeholder = "e.g. 10"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -189,19 +159,61 @@ fun AddTimerScreen() {
                 label = "Category",
                 options = categories,
                 selectedOption = selectedCategory,
-                onOptionSelected = { selectedCategory = it }
+                onOptionSelected = onCategorySelected
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = isFavorite,
+                    onCheckedChange = onFavoriteChange
+                )
+                Text("Mark as Favorite")
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text("Ingredients", style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    OutlinedTextField(value = ingredientName, onValueChange = onIngredientNameChange, label = { Text("Name") })
+                    OutlinedTextField(value = ingredientAmount, onValueChange = onIngredientAmountChange, label = { Text("Amount") })
+                }
+                IconButton(onClick = onAddIngredient) {
+                    Text("+")
+                }
+            }
+            ingredients.forEach { (n, a) ->
+                Text("• $n ($a)", style = MaterialTheme.typography.bodySmall)
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text("Instructions", style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = stepInstruction,
+                    onValueChange = onStepInstructionChange,
+                    label = { Text("Step Instruction") },
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = onAddStep) {
+                    Text("+")
+                }
+            }
+            steps.forEachIndexed { index, s ->
+                Text("${index + 1}. $s", style = MaterialTheme.typography.bodySmall)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { showErrors = true },
+                onClick = onAddTimerClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Add Timer")
+                Text("Save and View Details")
             }
         }
-        
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }

@@ -6,44 +6,100 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cookingtimer.presentation.ui.components.FormCard
 import com.example.cookingtimer.presentation.ui.components.ScreenHeader
 import com.example.cookingtimer.presentation.ui.components.ValidatedTextField
+import com.example.cookingtimer.presentation.ui.components.LoadingScreen
+import com.example.cookingtimer.presentation.ui.components.ErrorScreen
+import com.example.cookingtimer.presentation.view_model.auth.registration.RegistrationViewModel
+import com.example.cookingtimer.presentation.view_model.auth.registration.RegistrationUiState
+import com.example.cookingtimer.presentation.view_model.auth.registration.RegistrationNavigationEvent
+import com.example.cookingtimer.presentation.util.AuthValidators
 
 @Composable
 fun RegisterScreen(
-    onRegisterClick: (String, String) -> Unit,
+    viewModel: RegistrationViewModel,
+    onNavigate: () -> Unit,
     onLoginClick: () -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    var fullName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
-    var firstName by rememberSaveable { mutableStateOf("") }
-    var lastName by rememberSaveable { mutableStateOf("") }
-    var username by rememberSaveable { mutableStateOf("") }
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    var showErrors by remember { mutableStateOf(false) }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
+    val nameError = AuthValidators.validateName(fullName)
+    val emailError = AuthValidators.validateEmail(email)
+    val passwordError = AuthValidators.validatePassword(password)
+    val confirmPasswordError = if (password != confirmPassword) "Passwords do not match" else null
 
-    var step by remember { mutableIntStateOf(1) }
-    var termsAccepted by remember { mutableStateOf(false) }
+    val isRegisterEnabled = nameError == null && emailError == null && 
+                           passwordError == null && confirmPasswordError == null
 
-
-    val fullName by remember { derivedStateOf { "$firstName $lastName".trim() } }
-    
-
-    val isFormValid by remember {
-        derivedStateOf {
-            email.isNotBlank() && firstName.isNotBlank() && lastName.isNotBlank() && 
-            username.isNotBlank() && phoneNumber.isNotBlank() && password.isNotBlank() && termsAccepted
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                is RegistrationNavigationEvent.Navigate -> onNavigate()
+                is RegistrationNavigationEvent.NavigateBack -> { /* Do nothing */ }
+            }
         }
     }
 
+    when (uiState) {
+        is RegistrationUiState.Loading -> LoadingScreen()
+        is RegistrationUiState.Error -> ErrorScreen(
+            message = (uiState as RegistrationUiState.Error).message,
+            onRetry = { viewModel.resetUiState() }
+        )
+        else -> {
+            StatelessRegisterScreen(
+                fullName = fullName,
+                onFullNameChange = { fullName = it },
+                nameError = nameError,
+                email = email,
+                onEmailChange = { email = it },
+                emailError = emailError,
+                password = password,
+                onPasswordChange = { password = it },
+                passwordError = passwordError,
+                confirmPassword = confirmPassword,
+                onConfirmPasswordChange = { confirmPassword = it },
+                confirmPasswordError = confirmPasswordError,
+                isRegisterEnabled = isRegisterEnabled,
+                onRegisterClick = { viewModel.onRegisterClick(fullName, email, password) },
+                onLoginClick = onLoginClick
+            )
+        }
+    }
+}
+
+@Composable
+fun StatelessRegisterScreen(
+    fullName: String,
+    onFullNameChange: (String) -> Unit,
+    nameError: String?,
+    email: String,
+    onEmailChange: (String) -> Unit,
+    emailError: String?,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    passwordError: String?,
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordError: String?,
+    isRegisterEnabled: Boolean,
+    onRegisterClick: () -> Unit,
+    onLoginClick: () -> Unit
+) {
+    var showErrors by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -59,103 +115,55 @@ fun RegisterScreen(
             )
         }
 
-        if (fullName.isNotBlank()) {
-            item {
-                Text(
-                    text = "Welcome, $fullName!",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-        }
-
         item {
             FormCard {
-                Text("Registration Step: $step", fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
-                
-                Spacer(modifier = Modifier.height(8.dp))
+                ValidatedTextField(
+                    value = fullName,
+                    onValueChange = onFullNameChange,
+                    label = "Full Name",
+                    placeholder = "John Doe",
+                    error = if (showErrors) nameError else null
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 ValidatedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = onEmailChange,
                     label = "Email",
                     placeholder = "example@email.com",
-                    error = if (showErrors && email.isBlank()) "Email is required" else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ValidatedTextField(
-                    value = firstName,
-                    onValueChange = { firstName = it },
-                    label = "First Name",
-                    placeholder = "Tom",
-                    error = if (showErrors && firstName.isBlank()) "First name is required" else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ValidatedTextField(
-                    value = lastName,
-                    onValueChange = { lastName = it },
-                    label = "Last Name",
-                    placeholder = "Smith",
-                    error = if (showErrors && lastName.isBlank()) "Last name is required" else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ValidatedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = "Username",
-                    placeholder = "tom87",
-                    error = if (showErrors && username.isBlank()) "Username is required" else null
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ValidatedTextField(
-                    value = phoneNumber,
-                    onValueChange = { phoneNumber = it },
-                    label = "Phone Number",
-                    placeholder = "5551234567",
-                    error = if (showErrors && phoneNumber.isBlank()) "Phone number is required" else null
+                    error = if (showErrors) emailError else null
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 ValidatedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = onPasswordChange,
                     label = "Password",
                     placeholder = "Enter password",
                     visualTransformation = PasswordVisualTransformation(),
-                    error = if (showErrors && password.isBlank()) "Password is required" else null
+                    error = if (showErrors) passwordError else null
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                ValidatedTextField(
+                    value = confirmPassword,
+                    onValueChange = onConfirmPasswordChange,
+                    label = "Confirm Password",
+                    placeholder = "Confirm password",
+                    visualTransformation = PasswordVisualTransformation(),
+                    error = if (showErrors) confirmPasswordError else null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = termsAccepted,
-                        onCheckedChange = { termsAccepted = it }
-                    )
-                    Text("Accept Terms & Conditions", fontSize = 14.sp)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
-                    onClick = { 
+                    onClick = {
                         showErrors = true
-                        if (isFormValid) {
-                            step++
-                            onRegisterClick(firstName, email)
-                        }
+                        if (isRegisterEnabled) onRegisterClick()
                     },
-                    enabled = isFormValid || !showErrors,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Create Account")
@@ -170,10 +178,6 @@ fun RegisterScreen(
                     Text("Already have an account? Login")
                 }
             }
-        }
-        
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

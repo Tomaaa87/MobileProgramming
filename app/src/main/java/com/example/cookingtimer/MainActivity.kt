@@ -15,6 +15,9 @@ import com.example.cookingtimer.presentation.navigation.NavGraph
 import com.example.cookingtimer.presentation.navigation.Screen
 import com.example.cookingtimer.presentation.theme.CookingtimerTheme
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

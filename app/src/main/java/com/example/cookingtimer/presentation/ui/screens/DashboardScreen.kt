@@ -1,6 +1,7 @@
 package com.example.cookingtimer.presentation.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -9,59 +10,80 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.cookingtimer.presentation.ui.components.ScreenHeader
-import com.example.cookingtimer.presentation.ui.components.TimerCard
-import com.example.cookingtimer.presentation.ui.components.TimerItem
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.cookingtimer.presentation.ui.components.*
+import com.example.cookingtimer.presentation.view_model.dashboard.DashboardUiState
+import com.example.cookingtimer.presentation.view_model.dashboard.DashboardViewModel
+import com.example.cookingtimer.model.repository.timer.TimerData
 
 @Composable
 fun DashboardScreen(
-    name: String = "Tom",
-    email: String = ""
+    viewModel: DashboardViewModel,
+    onTimerClick: (Int) -> Unit
 ) {
-    var text by rememberSaveable { mutableStateOf("") }
-    var isChecked by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val categories = listOf(
-        "All", "Breakfast", "Lunch", "Dinner", "Dessert",
-        "Snacking", "Healthy", "Vegan", "Italian", "Baking"
-    )
-
-    val activeTimers = listOf(
-        TimerItem("Pasta", "10:00", "Boil water, add pasta."),
-        TimerItem("Eggs", "07:00", "Soft boiled."),
-        TimerItem("Rice", "18:00", "Simmer, lid on."),
-        TimerItem("Cookies", "12:00", "Bake and watch."),
-        TimerItem("Steak", "06:00", "Medium rare."),
-        TimerItem("Tea", "03:00", "English breakfast."),
-        TimerItem("Soup", "45:00", "Low heat simmer."),
-        TimerItem("Pizza", "15:00", "Crispy crust.")
-    )
-
-    val filteredCategories by remember {
-        derivedStateOf {
-            categories.filter { it.contains(text, ignoreCase = true) }
+    when (uiState) {
+        is DashboardUiState.Loading -> LoadingScreen()
+        is DashboardUiState.Error -> ErrorScreen(
+            message = (uiState as DashboardUiState.Error).message,
+            onRetry = { viewModel.resetUiState() }
+        )
+        is DashboardUiState.Success -> {
+            val state = uiState as DashboardUiState.Success
+            StatelessDashboardScreen(
+                name = state.userName,
+                searchQuery = state.searchQuery,
+                selectedCategory = state.selectedCategory,
+                timers = state.timers,
+                categories = state.categories,
+                onSearchChange = viewModel::onSearchChange,
+                onCategorySelect = viewModel::onCategorySelect,
+                onTimerToggle = viewModel::toggleTimer,
+                onDeleteTimer = viewModel::deleteTimer,
+                onTimerClick = onTimerClick
+            )
         }
+        else -> { /* Init */ }
     }
+}
 
-    val filteredTimers by remember {
-        derivedStateOf {
-            activeTimers.filter { timer ->
-                if (!isChecked) true
-                else {
-                    val minutes = timer.duration.substringBefore(":").toIntOrNull() ?: 0
-                    minutes <= 15
-                }
-            }
-        }
+@Composable
+fun StatelessDashboardScreen(
+    name: String,
+    searchQuery: String,
+    selectedCategory: String,
+    timers: List<TimerData>,
+    categories: List<String>,
+    onSearchChange: (String) -> Unit,
+    onCategorySelect: (String) -> Unit,
+    onTimerToggle: (Int) -> Unit,
+    onDeleteTimer: (Int) -> Unit,
+    onTimerClick: (Int) -> Unit
+) {
+    var isShortTimersOnly by remember { mutableStateOf(false) }
+
+    val filteredTimers = timers.filter { timer ->
+        val matchesSearch = timer.title.contains(searchQuery, ignoreCase = true) || 
+                          timer.description.contains(searchQuery, ignoreCase = true)
+        
+        val matchesCategory = selectedCategory == "All" || 
+                             timer.description.contains("Category: $selectedCategory", ignoreCase = true)
+        
+        val matchesShort = !isShortTimersOnly || (timer.totalSeconds / 60) <= 15
+        
+        matchesSearch && matchesCategory && matchesShort
     }
 
     LazyVerticalGrid(
@@ -73,50 +95,37 @@ fun DashboardScreen(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
         item(span = { GridItemSpan(2) }) {
             ScreenHeader(
-                title = "Cooking Timer",
-                subtitle = "Hello, $name! ($email) Ready to cook something delicious?"
+                title = "Dashboard",
+                subtitle = "Hello, $name! Ready to cook something delicious?"
+            )
+        }
+
+        item(span = { GridItemSpan(2) }) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchChange,
+                label = { Text("Search timers") },
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
         item(span = { GridItemSpan(2) }) {
             Column {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Search categories") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        item(span = { GridItemSpan(2) }) {
-            Column {
-
                 Text(
                     text = "Categories",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-
-                if (filteredCategories.isEmpty()) {
-                    Text(
-                        text = "No categories match your search.",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(filteredCategories) { category ->
-                            CategoryChip(category)
-                        }
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(categories) { category ->
+                        CategoryChip(
+                            name = category,
+                            isSelected = category == selectedCategory,
+                            onClick = { onCategorySelect(category) }
+                        )
                     }
                 }
 
@@ -124,61 +133,102 @@ fun DashboardScreen(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = isChecked,
-                        onCheckedChange = { isChecked = it }
+                        checked = isShortTimersOnly,
+                        onCheckedChange = { isShortTimersOnly = it }
                     )
                     Text("Show only short timers (< 15 min)")
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = if (isChecked) "Filter ON" else "Filter OFF"
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Active Timers",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
             }
+        }
+
+        // --- Active Timers ---
+        item(span = { GridItemSpan(2) }) {
+            Text(
+                text = "Active Timers",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
 
         if (filteredTimers.isEmpty()) {
             item(span = { GridItemSpan(2) }) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(100.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No timers available.", textAlign = TextAlign.Center)
-                }
+                Text(
+                    text = "No timers found for this criteria.",
+                    modifier = Modifier.padding(top = 32.dp).fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         } else {
             items(filteredTimers) { timer ->
-                TimerCard(
-                    title = timer.title,
-                    duration = timer.duration,
-                    description = timer.description
+                TimerCardWithAction(
+                    timer = timer,
+                    onToggle = { onTimerToggle(timer.id) },
+                    onDelete = { onDeleteTimer(timer.id) },
+                    onClick = { onTimerClick(timer.id) }
                 )
             }
-        }
-
-        item(span = { GridItemSpan(2) }) {
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-private fun CategoryChip(name: String) {
+fun TimerCardWithAction(timer: TimerData, onToggle: () -> Unit, onDelete: () -> Unit, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularTimer(
+            progress = timer.progress,
+            text = timer.durationText,
+            modifier = Modifier.size(100.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Text(
+            text = timer.title, 
+            fontWeight = FontWeight.Bold, 
+            fontSize = 16.sp,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            IconButton(onClick = onToggle) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Toggle",
+                    tint = if (timer.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryChip(name: String, isSelected: Boolean, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        modifier = Modifier.clickable { onClick() }
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

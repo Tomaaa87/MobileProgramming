@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,12 +38,6 @@ sealed class BottomBarScreen(
         title = "Profile",
         icon = Icons.Default.Person
     )
-
-    object Login : BottomBarScreen(
-        route = Screen.Login.route,
-        title = "Login",
-        icon = Icons.Default.Lock
-    )
 }
 
 @Composable
@@ -52,14 +45,12 @@ fun BottomBar(navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.Home,
         BottomBarScreen.Add,
-        BottomBarScreen.Profile,
-        BottomBarScreen.Login
+        BottomBarScreen.Profile
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-
-    val showBottomBar = screens.any { it.route == currentDestination?.route } || currentDestination?.route == Screen.Register.route
+    val showBottomBar = screens.any { it.route == currentDestination?.route }
 
     if (!showBottomBar) return
 
@@ -68,7 +59,7 @@ fun BottomBar(navController: NavHostController) {
             NavigationBarItem(
                 label = { Text(text = screen.title) },
                 icon = { Icon(imageVector = screen.icon, contentDescription = screen.title) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                selected = currentDestination?.route == screen.route,
                 onClick = {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
