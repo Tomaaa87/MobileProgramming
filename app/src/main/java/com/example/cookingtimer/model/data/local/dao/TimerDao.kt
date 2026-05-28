@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TimerDao {
     @Query("SELECT * FROM timers WHERE userId = :userId")
-    fun getAllTimers(userId: Int): Flow<List<TimerEntity>>
+    fun getAllTimers(userId: String): Flow<List<TimerEntity>>
 
     @Transaction
     @Query("SELECT * FROM timers WHERE userId = :userId")
-    fun getTimersWithSteps(userId: Int): Flow<List<TimerWithSteps>>
+    fun getTimersWithSteps(userId: String): Flow<List<TimerWithSteps>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTimer(timer: TimerEntity): Long
@@ -21,12 +21,12 @@ interface TimerDao {
     suspend fun updateTimer(timer: TimerEntity)
 
     @Delete
-    suspend fun deleteTimer(timer: TimerEntity)
+    suspend fun deleteTimer(timerEntity: TimerEntity)
 
     @Query("SELECT * FROM timers WHERE id = :id")
-    suspend fun getTimerById(id: Int): TimerEntity?
+    suspend fun getTimerById(id: String): TimerEntity?
 
     @Transaction
     @Query("SELECT * FROM timers WHERE id = :id")
-    suspend fun getTimerWithStepsById(id: Int): TimerWithSteps?
+    suspend fun getTimerWithStepsById(id: String): TimerWithSteps?
 }

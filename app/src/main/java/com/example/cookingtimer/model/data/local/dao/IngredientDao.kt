@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface IngredientDao {
     @Query("SELECT * FROM ingredients WHERE timerId = :timerId")
-    fun getIngredientsForTimer(timerId: Int): Flow<List<IngredientEntity>>
+    fun getIngredientsForTimer(timerId: String): Flow<List<IngredientEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIngredient(ingredient: IngredientEntity)
@@ -19,5 +19,5 @@ interface IngredientDao {
     suspend fun deleteIngredient(ingredient: IngredientEntity)
 
     @Query("DELETE FROM ingredients WHERE timerId = :timerId")
-    suspend fun deleteAllIngredientsForTimer(timerId: Int)
+    suspend fun deleteAllIngredientsForTimer(timerId: String)
 }

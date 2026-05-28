@@ -27,9 +27,9 @@ import androidx.room.PrimaryKey
     ]
 )
 data class TimerEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val userId: Int,
+    @PrimaryKey
+    val id: String,
+    val userId: String,
     val categoryId: Int? = null,
     val title: String,
     val totalSeconds: Long,

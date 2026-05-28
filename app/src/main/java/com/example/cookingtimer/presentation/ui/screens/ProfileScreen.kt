@@ -52,7 +52,8 @@ fun ProfileScreen(
                 onLogoutAction = {
                     viewModel.logout()
                     onLogoutClick()
-                }
+                },
+                onSaveProfile = { viewModel.updateProfile(it) }
             )
         }
         else -> { /* Do nothing for Init or other states */ }
@@ -63,7 +64,8 @@ fun ProfileScreen(
 @Composable
 fun StatelessProfileScreen(
     profileData: ProfileData,
-    onLogoutAction: () -> Unit
+    onLogoutAction: () -> Unit,
+    onSaveProfile: (ProfileData) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -134,7 +136,18 @@ fun StatelessProfileScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { scope.launch { snackbarHostState.showSnackbar("Changes saved") } }
+                onClick = { 
+                    val updatedProfile = profileData.copy(
+                        displayName = displayName,
+                        bio = bio,
+                        notificationsEnabled = notificationsEnabled,
+                        emailUpdates = emailUpdates,
+                        selectedTheme = selectedTheme,
+                        fontSize = fontSize
+                    )
+                    onSaveProfile(updatedProfile)
+                    scope.launch { snackbarHostState.showSnackbar("Changes saved") } 
+                }
             ) { Icon(Icons.Default.Check, contentDescription = "Save") }
         }
     ) { paddingValues ->

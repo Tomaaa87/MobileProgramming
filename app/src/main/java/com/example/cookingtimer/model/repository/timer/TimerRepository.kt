@@ -13,9 +13,9 @@ interface TimerRepository {
         isFavorite: Boolean,
         ingredients: List<Pair<String, String>> = emptyList(),
         steps: List<String> = emptyList()
-    ): Result<Long>
+    ): Result<String>
     suspend fun updateTimer(timer: TimerData): Result<Unit>
-    suspend fun deleteTimer(timerId: Int): Result<Unit>
-    suspend fun getTimerById(timerId: Int): Result<TimerData?>
+    suspend fun deleteTimer(timerId: String): Result<Unit>
+    suspend fun getTimerById(timerId: String): Result<TimerData?>
     suspend fun getTimersWithSteps(): Result<List<TimerWithSteps>>
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "962489531975",
+    "project_id": "ddddd-98994",
+    "storage_bucket": "ddddd-98994.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962489531975:android:a0a6d7eced6a8db8a3bb62",
+        "android_client_info": {
+          "package_name": "com.example.cookingtimer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCExhOH1yLy_-_WHl2_YPo6Vsp8EqOPWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

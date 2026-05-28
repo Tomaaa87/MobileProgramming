@@ -7,10 +7,10 @@ import javax.inject.Singleton
 
 @Singleton
 class SessionManager @Inject constructor() {
-    private val _currentUserId = MutableStateFlow<Int?>(null)
-    val currentUserId: StateFlow<Int?> = _currentUserId
+    private val _currentUserId = MutableStateFlow<String?>(null)
+    val currentUserId: StateFlow<String?> = _currentUserId
 
-    fun login(userId: Int) {
+    fun login(userId: String) {
         _currentUserId.value = userId
     }
 
@@ -18,5 +18,5 @@ class SessionManager @Inject constructor() {
         _currentUserId.value = null
     }
     
-    fun getUserId(): Int = _currentUserId.value ?: 1
+    fun getUserId(): String = _currentUserId.value ?: ""
 }

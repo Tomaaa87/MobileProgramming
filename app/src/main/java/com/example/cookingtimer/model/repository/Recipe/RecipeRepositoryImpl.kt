@@ -14,7 +14,7 @@ class RecipeRepositoryImpl @Inject constructor(
     private val recipeStepDao: RecipeStepDao
 ) : RecipeRepository {
 
-    override suspend fun getIngredients(timerId: Int): Result<List<IngredientEntity>> =
+    override suspend fun getIngredients(timerId: String): Result<List<IngredientEntity>> =
         withContext(Dispatchers.IO) {
             try {
                 val list = ingredientDao.getIngredientsForTimer(timerId).first()
@@ -24,7 +24,7 @@ class RecipeRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getSteps(timerId: Int): Result<List<RecipeStepEntity>> =
+    override suspend fun getSteps(timerId: String): Result<List<RecipeStepEntity>> =
         withContext(Dispatchers.IO) {
             try {
                 val list = recipeStepDao.getStepsForTimer(timerId).first()
@@ -34,7 +34,7 @@ class RecipeRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun addIngredient(timerId: Int, name: String, amount: String): Result<Unit> =
+    override suspend fun addIngredient(timerId: String, name: String, amount: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             try {
                 ingredientDao.insertIngredient(
@@ -50,7 +50,7 @@ class RecipeRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun addStep(timerId: Int, instruction: String, stepNumber: Int): Result<Unit> =
+    override suspend fun addStep(timerId: String, instruction: String, stepNumber: Int): Result<Unit> =
         withContext(Dispatchers.IO) {
             try {
                 recipeStepDao.insertStep(

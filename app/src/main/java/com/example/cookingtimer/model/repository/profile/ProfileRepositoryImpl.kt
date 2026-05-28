@@ -26,6 +26,7 @@ class ProfileRepositoryImpl @Inject constructor(
         try {
             val userId = sessionManager.getUserId()
             val user = userDao.getUserProfile(userId).first() ?: UserEntity(
+                id = userId,
                 email = "default@example.com",
                 password = "password",
                 displayName = "New Chef",
@@ -38,6 +39,16 @@ class ProfileRepositoryImpl @Inject constructor(
             ).also { userDao.insertOrUpdateUser(it) }
 
             Result.success(user.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateProfileData(data: ProfileData): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            // Since we are primarily using Firestore for Profile now,
+            // this local Room implementation can be a stub or simple success.
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

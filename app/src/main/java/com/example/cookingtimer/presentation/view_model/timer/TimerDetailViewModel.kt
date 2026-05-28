@@ -24,25 +24,31 @@ class TimerDetailViewModel @Inject constructor(
 
     private var tickerJob: Job? = null
 
-    fun loadTimerDetail(timerId: Int) {
+    fun loadTimerDetail(timerId: String) {
         viewModelScope.launch {
             _uiState.value = TimerDetailUiState.Loading
             
-            // Observe the timer flow for live updates from DB
-            timerRepository.getTimersFlow().collect { timers ->
-                val timer = timers.find { it.id == timerId }
-                val stepsResult = recipeRepository.getSteps(timerId)
-                val ingredientsResult = recipeRepository.getIngredients(timerId)
+            try {
+                // Observe the timer flow for live updates from DB
+                timerRepository.getTimersFlow().collect { timers ->
+                    val timer = timers.find { it.id == timerId }
+                    
+                    if (timer != null) {
+                        // Load steps and ingredients once or update reactively if needed
+                        val steps = recipeRepository.getSteps(timerId).getOrDefault(emptyList())
+                        val ingredients = recipeRepository.getIngredients(timerId).getOrDefault(emptyList())
 
-                if (timer != null && stepsResult.isSuccess && ingredientsResult.isSuccess) {
-                    _uiState.value = TimerDetailUiState.Success(
-                        timer = timer,
-                        steps = stepsResult.getOrDefault(emptyList()),
-                        ingredients = ingredientsResult.getOrDefault(emptyList())
-                    )
-                } else if (timer == null) {
-                    _uiState.value = TimerDetailUiState.Error("Timer not found")
+                        _uiState.value = TimerDetailUiState.Success(
+                            timer = timer,
+                            steps = steps,
+                            ingredients = ingredients
+                        )
+                    } else {
+                        _uiState.value = TimerDetailUiState.Error("Timer not found")
+                    }
                 }
+            } catch (e: Exception) {
+                _uiState.value = TimerDetailUiState.Error(e.message ?: "An unexpected error occurred")
             }
         }
         startTicker()
@@ -65,7 +71,7 @@ class TimerDetailViewModel @Inject constructor(
         }
     }
 
-    fun toggleTimer(timerId: Int) {
+    fun toggleTimer(timerId: String) {
         val currentState = _uiState.value
         if (currentState is TimerDetailUiState.Success) {
             val updatedTimer = currentState.timer.copy(isRunning = !currentState.timer.isRunning)

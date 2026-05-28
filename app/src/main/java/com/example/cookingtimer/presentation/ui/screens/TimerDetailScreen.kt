@@ -30,7 +30,7 @@ import com.example.cookingtimer.presentation.view_model.timer.TimerDetailViewMod
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimerDetailScreen(
-    timerId: Int,
+    timerId: String,
     onNavigateBack: () -> Unit,
     viewModel: TimerDetailViewModel = hiltViewModel()
 ) {
@@ -88,6 +88,13 @@ fun TimerDetailContent(
             fontWeight = FontWeight.Bold
         )
         
+        Text(
+            text = state.timer.description,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+        
         Spacer(modifier = Modifier.height(16.dp))
         
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -99,12 +106,6 @@ fun TimerDetailContent(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = state.timer.description,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
         Button(
             onClick = onToggleTimer,

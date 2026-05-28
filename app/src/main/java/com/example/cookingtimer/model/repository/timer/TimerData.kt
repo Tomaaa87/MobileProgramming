@@ -1,7 +1,7 @@
 package com.example.cookingtimer.model.repository.timer
 
 data class TimerData(
-    val id: Int,
+    val id: String,
     val title: String,
     val totalSeconds: Long,
     val remainingSeconds: Long,

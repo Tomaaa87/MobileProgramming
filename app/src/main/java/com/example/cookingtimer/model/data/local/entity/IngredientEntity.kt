@@ -20,7 +20,7 @@ import androidx.room.PrimaryKey
 data class IngredientEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val timerId: Int,
+    val timerId: String,
     val name: String,
     val amount: String
 )
