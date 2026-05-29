@@ -3,12 +3,10 @@ package com.example.cookingtimer.model.repository.timer
 import com.example.cookingtimer.model.data.local.dao.IngredientDao
 import com.example.cookingtimer.model.data.local.dao.RecipeStepDao
 import com.example.cookingtimer.model.data.local.dao.TimerDao
-import com.example.cookingtimer.model.data.local.entity.IngredientEntity
-import com.example.cookingtimer.model.data.local.entity.RecipeStepEntity
 import com.example.cookingtimer.model.data.local.entity.TimerEntity
 import com.example.cookingtimer.model.data.local.entity.TimerWithSteps
-import com.example.cookingtimer.model.repository.mapper.Mapper.toDomain
-import com.example.cookingtimer.model.repository.mapper.Mapper.toEntity
+import com.example.cookingtimer.model.mapper.Mapper.toDomain
+import com.example.cookingtimer.model.mapper.Mapper.toEntity
 import com.example.cookingtimer.model.repository.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

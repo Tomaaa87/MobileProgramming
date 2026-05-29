@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.repository.mapper
+package com.example.cookingtimer.model.mapper
 
 import com.example.cookingtimer.model.data.local.entity.CategoryEntity
 import com.example.cookingtimer.model.data.local.entity.IngredientEntity

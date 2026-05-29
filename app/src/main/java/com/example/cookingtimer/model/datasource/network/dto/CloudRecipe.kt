@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.data.remote
+package com.example.cookingtimer.model.datasource.network.dto
 
 import com.google.gson.annotations.SerializedName
 

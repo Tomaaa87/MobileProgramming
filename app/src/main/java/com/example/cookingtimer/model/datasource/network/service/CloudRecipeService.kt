@@ -1,6 +1,12 @@
-package com.example.cookingtimer.model.data.remote
+package com.example.cookingtimer.model.datasource.network.service
 
-import retrofit2.http.*
+import com.example.cookingtimer.model.datasource.network.dto.CloudRecipe
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface CloudRecipeService {
     @GET("recipes")

@@ -1,7 +1,7 @@
 package com.example.cookingtimer.model.repository
 
-import com.example.cookingtimer.model.data.remote.CloudRecipe
-import com.example.cookingtimer.model.data.remote.CloudRecipeService
+import com.example.cookingtimer.model.datasource.network.dto.CloudRecipe
+import com.example.cookingtimer.model.datasource.network.service.CloudRecipeService
 import javax.inject.Inject
 import javax.inject.Singleton
 

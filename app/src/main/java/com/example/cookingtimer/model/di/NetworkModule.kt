@@ -1,6 +1,6 @@
 package com.example.cookingtimer.model.di
 
-import com.example.cookingtimer.model.data.remote.CloudRecipeService
+import com.example.cookingtimer.model.datasource.network.service.CloudRecipeService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

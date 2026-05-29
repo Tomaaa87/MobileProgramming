@@ -2,7 +2,7 @@ package com.example.cookingtimer.model.repository.profile
 
 import com.example.cookingtimer.model.data.local.dao.UserDao
 import com.example.cookingtimer.model.data.local.entity.UserEntity
-import com.example.cookingtimer.model.repository.mapper.Mapper.toDomain
+import com.example.cookingtimer.model.mapper.Mapper.toDomain
 import com.example.cookingtimer.model.repository.SessionManager
 import com.example.cookingtimer.presentation.view_model.profile.ProfileData
 import kotlinx.coroutines.Dispatchers

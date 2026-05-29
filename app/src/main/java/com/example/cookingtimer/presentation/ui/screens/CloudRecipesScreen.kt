@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.cookingtimer.model.data.remote.CloudRecipe
+import com.example.cookingtimer.model.datasource.network.dto.CloudRecipe
 import com.example.cookingtimer.presentation.view_model.cloud.CloudRecipeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

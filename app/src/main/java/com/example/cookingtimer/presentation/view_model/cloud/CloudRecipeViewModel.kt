@@ -2,7 +2,7 @@ package com.example.cookingtimer.presentation.view_model.cloud
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cookingtimer.model.data.remote.CloudRecipe
+import com.example.cookingtimer.model.datasource.network.dto.CloudRecipe
 import com.example.cookingtimer.model.repository.CloudRecipeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
