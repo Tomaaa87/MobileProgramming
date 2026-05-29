@@ -2,6 +2,7 @@ package com.example.cookingtimer.presentation.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -38,6 +39,12 @@ sealed class BottomBarScreen(
         title = "Profile",
         icon = Icons.Default.Person
     )
+
+    object Cloud : BottomBarScreen(
+        route = Screen.CloudRecipes.route,
+        title = "Cloud",
+        icon = Icons.Default.Search
+    )
 }
 
 @Composable
@@ -45,6 +52,7 @@ fun BottomBar(navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.Home,
         BottomBarScreen.Add,
+        BottomBarScreen.Cloud,
         BottomBarScreen.Profile
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()

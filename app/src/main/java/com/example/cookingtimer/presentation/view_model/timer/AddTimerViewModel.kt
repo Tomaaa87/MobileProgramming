@@ -37,6 +37,9 @@ class AddTimerViewModel @Inject constructor(
         }
     }
 
+    @Inject
+    lateinit var recipeRepository: com.example.cookingtimer.model.repository.recipe.RecipeRepository
+
     fun addTimer(
         name: String,
         duration: String,
@@ -51,8 +54,17 @@ class AddTimerViewModel @Inject constructor(
             val totalSeconds = (duration.toLongOrNull() ?: 0L) * 60L
             timerRepository.addTimer(name, totalSeconds, category, isFavorite, ingredients, steps)
                 .onSuccess { timerId ->
+                    // Save ingredients to Room
+                    ingredients.forEach { (ingName, amount) ->
+                        recipeRepository.addIngredient(timerId, ingName, amount)
+                    }
+                    // Save steps to Room
+                    steps.forEachIndexed { index, instruction ->
+                        recipeRepository.addStep(timerId, instruction, index + 1)
+                    }
+
                     _uiState.value = AddTimerUiState.Success
-                    _navigationEvent.send(AddTimerNavigationEvent.NavigateToDetail(timerId.toInt()))
+                    _navigationEvent.send(AddTimerNavigationEvent.NavigateToDetail(timerId))
                 }
                 .onFailure { error ->
                     _uiState.value = AddTimerUiState.Error(error.message ?: "Unknown error")

@@ -15,12 +15,24 @@ import com.example.cookingtimer.presentation.navigation.NavGraph
 import com.example.cookingtimer.presentation.navigation.Screen
 import com.example.cookingtimer.presentation.theme.CookingtimerTheme
 
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var firebaseAuth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val startDestination = if (firebaseAuth.currentUser != null) {
+            Screen.Dashboard.route
+        } else {
+            Screen.Login.route
+        }
+
         enableEdgeToEdge()
         setContent {
             CookingtimerTheme(
@@ -35,7 +47,7 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.padding(innerPadding)) {
                         NavGraph(
                             navController = navController,
-                            startDestination = Screen.Dashboard.route
+                            startDestination = startDestination
                         )
                     }
                 }

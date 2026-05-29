@@ -94,7 +94,7 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    fun toggleTimer(timerId: Int) {
+    fun toggleTimer(timerId: String) {
         val currentState = _uiState.value
         if (currentState is DashboardUiState.Success) {
             val timer = currentState.timers.find { it.id == timerId }
@@ -107,7 +107,7 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    fun deleteTimer(timerId: Int) {
+    fun deleteTimer(timerId: String) {
         viewModelScope.launch {
             timerRepository.deleteTimer(timerId)
         }

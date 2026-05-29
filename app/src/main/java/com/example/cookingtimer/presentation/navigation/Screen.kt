@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     object Dashboard : Screen("dashboard_screen")
     object Profile : Screen("profile_screen")
     object AddTimer : Screen("add_timer_screen")
+    object CloudRecipes : Screen("cloud_recipes_screen")
     
     object Timers : Screen("timers_screen")
     object Achievements : Screen("achievements_screen")
@@ -14,6 +15,6 @@ sealed class Screen(val route: String) {
     object Quests : Screen("quests_screen")
     object HomeShortcut : Screen("home_shortcut_screen")
     object TimerDetail : Screen("timer_detail_screen/{timerId}") {
-        fun createRoute(timerId: Int) = "timer_detail_screen/$timerId"
+        fun createRoute(timerId: String) = "timer_detail_screen/$timerId"
     }
 }

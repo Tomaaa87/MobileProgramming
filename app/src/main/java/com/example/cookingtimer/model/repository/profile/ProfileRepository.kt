@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface ProfileRepository {
     fun getProfileDataFlow(): Flow<ProfileData?>
     suspend fun getProfileData(): Result<ProfileData>
+    suspend fun updateProfileData(data: ProfileData): Result<Unit>
 }

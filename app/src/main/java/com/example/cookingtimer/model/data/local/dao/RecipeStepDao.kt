@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface RecipeStepDao {
     @Query("SELECT * FROM recipe_steps WHERE timerId = :timerId ORDER BY stepNumber ASC")
-    fun getStepsForTimer(timerId: Int): Flow<List<RecipeStepEntity>>
+    fun getStepsForTimer(timerId: String): Flow<List<RecipeStepEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStep(step: RecipeStepEntity)
@@ -19,5 +19,5 @@ interface RecipeStepDao {
     suspend fun deleteStep(step: RecipeStepEntity)
 
     @Query("DELETE FROM recipe_steps WHERE timerId = :timerId")
-    suspend fun deleteAllStepsForTimer(timerId: Int)
+    suspend fun deleteAllStepsForTimer(timerId: String)
 }

@@ -1,4 +1,4 @@
-package com.example.cookingtimer.model.repository.mapper
+package com.example.cookingtimer.model.mapper
 
 import com.example.cookingtimer.model.data.local.entity.CategoryEntity
 import com.example.cookingtimer.model.data.local.entity.IngredientEntity
@@ -12,7 +12,7 @@ object Mapper {
 
     fun TimerEntity.toDomain(): TimerData {
         return TimerData(
-            id = this.id,
+            id = this.id.toString(),
             title = this.title,
             totalSeconds = this.totalSeconds,
             remainingSeconds = this.remainingSeconds,
@@ -21,7 +21,7 @@ object Mapper {
         )
     }
 
-    fun TimerData.toEntity(userId: Int, categoryId: Int? = null): TimerEntity {
+    fun TimerData.toEntity(userId: String, categoryId: Int? = null): TimerEntity {
         return TimerEntity(
             id = this.id,
             userId = userId,
@@ -37,6 +37,7 @@ object Mapper {
     fun UserEntity.toDomain(): ProfileData {
         return ProfileData(
             displayName = this.displayName,
+            email = this.email,
             bio = this.bio,
             notificationsEnabled = this.notificationsEnabled,
             emailUpdates = this.emailUpdates,

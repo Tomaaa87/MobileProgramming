@@ -35,10 +35,10 @@ fun NavGraph(
         composable(
             route = Screen.TimerDetail.route,
             arguments = listOf(
-                navArgument("timerId") { type = NavType.IntType }
+                navArgument("timerId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val timerId = backStackEntry.arguments?.getInt("timerId") ?: 0
+            val timerId = backStackEntry.arguments?.getString("timerId") ?: ""
             TimerDetailScreen(
                 timerId = timerId,
                 onNavigateBack = { navController.navigateUp() }
@@ -94,6 +94,9 @@ fun NavGraph(
                     }
                 }
             )
+        }
+        composable(route = Screen.CloudRecipes.route) {
+            CloudRecipesScreen()
         }
     }
 }

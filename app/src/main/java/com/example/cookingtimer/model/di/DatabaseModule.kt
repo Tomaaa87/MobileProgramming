@@ -7,14 +7,17 @@ import com.example.cookingtimer.model.data.local.db.AppDatabase
 import com.example.cookingtimer.model.repository.*
 import com.example.cookingtimer.model.repository.category.CategoryRepository
 import com.example.cookingtimer.model.repository.category.CategoryRepositoryImpl
+import com.example.cookingtimer.model.repository.category.FirestoreCategoryRepositoryImpl
 import com.example.cookingtimer.model.repository.recipe.RecipeRepository
 import com.example.cookingtimer.model.repository.recipe.RecipeRepositoryImpl
 import com.example.cookingtimer.model.repository.auth.AuthRepository
 import com.example.cookingtimer.model.repository.auth.AuthRepositoryImpl
 import com.example.cookingtimer.model.repository.profile.ProfileRepository
 import com.example.cookingtimer.model.repository.profile.ProfileRepositoryImpl
+import com.example.cookingtimer.model.repository.profile.FirestoreProfileRepositoryImpl
 import com.example.cookingtimer.model.repository.timer.TimerRepository
 import com.example.cookingtimer.model.repository.timer.TimerRepositoryImpl
+import com.example.cookingtimer.model.repository.timer.FirestoreTimerRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -33,15 +36,15 @@ abstract class DatabaseModule {
 
     @Binds
     @Singleton
-    abstract fun bindProfileRepository(impl: ProfileRepositoryImpl): ProfileRepository
+    abstract fun bindProfileRepository(impl: FirestoreProfileRepositoryImpl): ProfileRepository
 
     @Binds
     @Singleton
-    abstract fun bindTimerRepository(impl: TimerRepositoryImpl): TimerRepository
+    abstract fun bindTimerRepository(impl: FirestoreTimerRepositoryImpl): TimerRepository
 
     @Binds
     @Singleton
-    abstract fun bindCategoryRepository(impl: CategoryRepositoryImpl): CategoryRepository
+    abstract fun bindCategoryRepository(impl: FirestoreCategoryRepositoryImpl): CategoryRepository
 
     @Binds
     @Singleton

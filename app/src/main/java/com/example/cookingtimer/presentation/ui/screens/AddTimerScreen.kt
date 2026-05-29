@@ -20,7 +20,7 @@ import com.example.cookingtimer.presentation.view_model.timer.AddTimerViewModel
 fun AddTimerScreen(
     viewModel: AddTimerViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToDetail: (Int) -> Unit
+    onNavigateToDetail: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

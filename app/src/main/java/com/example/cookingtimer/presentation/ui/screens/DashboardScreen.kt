@@ -30,7 +30,7 @@ import com.example.cookingtimer.model.repository.timer.TimerData
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    onTimerClick: (Int) -> Unit
+    onTimerClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -43,7 +43,6 @@ fun DashboardScreen(
         is DashboardUiState.Success -> {
             val state = uiState as DashboardUiState.Success
             StatelessDashboardScreen(
-                name = state.userName,
                 searchQuery = state.searchQuery,
                 selectedCategory = state.selectedCategory,
                 timers = state.timers,
@@ -61,16 +60,15 @@ fun DashboardScreen(
 
 @Composable
 fun StatelessDashboardScreen(
-    name: String,
     searchQuery: String,
     selectedCategory: String,
     timers: List<TimerData>,
     categories: List<String>,
     onSearchChange: (String) -> Unit,
     onCategorySelect: (String) -> Unit,
-    onTimerToggle: (Int) -> Unit,
-    onDeleteTimer: (Int) -> Unit,
-    onTimerClick: (Int) -> Unit
+    onTimerToggle: (String) -> Unit,
+    onDeleteTimer: (String) -> Unit,
+    onTimerClick: (String) -> Unit
 ) {
     var isShortTimersOnly by remember { mutableStateOf(false) }
 
@@ -98,7 +96,7 @@ fun StatelessDashboardScreen(
         item(span = { GridItemSpan(2) }) {
             ScreenHeader(
                 title = "Dashboard",
-                subtitle = "Hello, $name! Ready to cook something delicious?"
+                subtitle = "Ready to cook something delicious?"
             )
         }
 

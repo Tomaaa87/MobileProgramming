@@ -32,13 +32,28 @@ class ProfileViewModel @Inject constructor(
     private fun observeProfile() {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-            profileRepository.getProfileDataFlow().collect { data ->
-                if (data != null) {
-                    _uiState.value = ProfileUiState.Success(data)
-                } else {
-                    // Trigger seeding if needed
-                    profileRepository.getProfileData()
+            try {
+                profileRepository.getProfileDataFlow().collect { data ->
+                    if (data != null) {
+                        _uiState.value = ProfileUiState.Success(data)
+                    } else {
+                        // Profile missing from Firestore, show a default instead of hanging
+                        _uiState.value = ProfileUiState.Success(
+                            ProfileData(
+                                displayName = "New Chef",
+                                email = "user@example.com",
+                                bio = "Cooking enthusiast",
+                                notificationsEnabled = true,
+                                emailUpdates = false,
+                                selectedTheme = "System",
+                                fontSize = 16f,
+                                achievements = emptyList()
+                            )
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                _uiState.value = ProfileUiState.Error(e.message ?: "Failed to load profile")
             }
         }
     }
@@ -51,5 +66,11 @@ class ProfileViewModel @Inject constructor(
 
     fun resetUiState() {
         _uiState.value = ProfileUiState.Init
+    }
+
+    fun updateProfile(data: ProfileData) {
+        viewModelScope.launch {
+            profileRepository.updateProfileData(data)
+        }
     }
 }
